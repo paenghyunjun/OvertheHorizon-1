@@ -7,6 +7,8 @@ public class PlayerData : ScriptableObject
     public string playerName;
     public int playerID;
     public int playerHealth;
+    public float playerSpeed;
     public Sprite playerIcon;
+    public Sprite[] playerAnimation;
     [TextArea] public string playerDescription;
 }
