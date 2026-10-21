@@ -1,9 +1,11 @@
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class IntroButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    [SerializeField] private GameObject EditScene;
     private RectTransform rectTransform;
     private float originalX;
 
@@ -27,5 +29,17 @@ public class IntroButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         rectTransform.DOComplete();
         rectTransform.DOScale(Vector3.one * 1.0f, 0.2f);
         rectTransform.DOAnchorPosX(originalX, 0.2f);
+    }
+    public void EditSceneOn()
+    {
+        EditScene.SetActive(true);
+    }
+    public void EditSceneOff()
+    {
+        EditScene.SetActive(false);
+    }
+    public void StartScene()
+    {
+        LoadingSceneManager.LoadScene("1_GameScene");
     }
 }
