@@ -16,8 +16,11 @@ MonoBehaviour:
   playerID: 1
   playerHealth: 190
   playerSpeed: 1
-  playerIcon: {fileID: 0}
-  playerAnimation: []
+  chddkf: {fileID: 0}
+  playerIcon: {fileID: 1388154641894931755, guid: 03464d5d969885145b5fb1c7b898c7f6, type: 3}
+  playerAnimation:
+  - {fileID: 1388154641894931755, guid: 03464d5d969885145b5fb1c7b898c7f6, type: 3}
+  - {fileID: -1459559465385286161, guid: 9d7065d0c454aab4a9026d8cb4ca6226, type: 3}
   playerDescription: "\uBC24\uC758 \uC544\uB4E4\uC774\uB77C\uACE0 \uBD88\uB9AC\uB294
     \uAE4C\uB9C8\uADC0\uB294 \uC2E0\uC758 \uC120\uD0DD\uC744 \uBC1B\uB294\uB2E4\uB294
     \uAC83\uC73C\uB85C \uC720\uBA85\uD558\uB2E4.\n"

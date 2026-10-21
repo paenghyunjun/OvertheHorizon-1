@@ -40,6 +40,6 @@ public class IntroButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     }
     public void StartScene()
     {
-        LoadingSceneManager.LoadScene("1_GameScene");
+        LoadingSceneManager.LoadScene("1_SlectScene");
     }
 }
