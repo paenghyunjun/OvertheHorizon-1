@@ -17,20 +17,41 @@ public enum KeyAction
 
 public class KeyManager : MonoBehaviour
 {
-    public static KeyManager Instance { get; private set; }
+    private static KeyManager instance;
+    public static KeyManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindFirstObjectByType<KeyManager>();
+                if (instance == null)
+                {
+                    GameObject go = new GameObject("KeyManager");
+                    instance = go.AddComponent<KeyManager>();
+                    DontDestroyOnLoad(go);
+                    instance.InitDefaultKeys();
+                }
+            }
+            return instance;
+        }
+    }
 
     // KeyCode 대신 UnityEngine.InputSystem.Key 사용
     public Dictionary<KeyAction, Key> keys = new Dictionary<KeyAction, Key>();
 
     private void Awake()
     {
-        if (Instance == null)
+        if (instance == null)
         {
-            Instance = this;
+            instance = this;
             DontDestroyOnLoad(gameObject);
-            InitDefaultKeys();
+            if (keys.Count == 0)
+            {
+                InitDefaultKeys();
+            }
         }
-        else
+        else if (instance != this)
         {
             Destroy(gameObject);
         }
