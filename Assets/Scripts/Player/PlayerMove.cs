@@ -40,12 +40,22 @@ public class PlayerMove: MonoBehaviour
 
         // 1) 키보드 입력 처리
         var kb = Keyboard.current;
-        if (kb != null && KeyManager.Instance != null)
+        if (kb != null)
         {
-            if (kb[KeyManager.Instance.keys[KeyAction.Right]].isPressed) dir.x += 1f;
-            if (kb[KeyManager.Instance.keys[KeyAction.Left]].isPressed) dir.x -= 1f;
-            if (kb[KeyManager.Instance.keys[KeyAction.Forward]].isPressed) dir.y += 1f;
-            if (kb[KeyManager.Instance.keys[KeyAction.Backward]].isPressed) dir.y -= 1f;
+            Key rightKey = Key.D, leftKey = Key.A, forwardKey = Key.W, backwardKey = Key.S;
+
+            if (KeyManager.Instance != null && KeyManager.Instance.keys != null)
+            {
+                KeyManager.Instance.keys.TryGetValue(KeyAction.Right, out rightKey);
+                KeyManager.Instance.keys.TryGetValue(KeyAction.Left, out leftKey);
+                KeyManager.Instance.keys.TryGetValue(KeyAction.Forward, out forwardKey);
+                KeyManager.Instance.keys.TryGetValue(KeyAction.Backward, out backwardKey);
+            }
+
+            if (kb[rightKey].isPressed) dir.x += 1f;
+            if (kb[leftKey].isPressed) dir.x -= 1f;
+            if (kb[forwardKey].isPressed) dir.y += 1f;
+            if (kb[backwardKey].isPressed) dir.y -= 1f;
         }
 
         // 2) 게임패드 입력 처리
