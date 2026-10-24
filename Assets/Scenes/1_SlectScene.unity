@@ -167,9 +167,16 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9ea9c66ca249c3c4a90795643a8c1d0a, type: 2}
   Charters: {fileID: 1532649569}
   NameText: {fileID: 1666807488}
-  HPText: {fileID: 0}
-  SpeedText: {fileID: 0}
-  EditText: {fileID: 0}
+  HPText: {fileID: 1984098818}
+  SpeedText: {fileID: 1793363669}
+  EditText: {fileID: 1493291814}
+  PrevButton: {fileID: 1642067360}
+  NextButton: {fileID: 1593664772}
+  SelectButton: {fileID: 0}
+  NextSceneName: 2.GameScene
+  RememberLastSelection: 1
+  UseFrameAnimation: 1
+  FramesPerSecond: 8
 --- !u!1 &215295906
 GameObject:
   m_ObjectHideFlags: 0
@@ -891,7 +898,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -131.01007, y: 0, z: -191.66272, w: -85.16864}
+  m_margin: {x: -131.01007, y: 0, z: -234.01471, w: -85.16864}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -993,7 +1000,7 @@ GameObject:
   - component: {fileID: 1593664773}
   - component: {fileID: 1593664772}
   m_Layer: 5
-  m_Name: dd
+  m_Name: next
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1114,7 +1121,7 @@ GameObject:
   - component: {fileID: 1642067361}
   - component: {fileID: 1642067360}
   m_Layer: 5
-  m_Name: dd (1)
+  m_Name: pre
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1530,7 +1537,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -142, y: -229}
+  m_AnchoredPosition: {x: -46.1, y: -229}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1984098818
@@ -1587,7 +1594,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
