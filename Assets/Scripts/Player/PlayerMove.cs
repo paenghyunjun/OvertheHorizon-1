@@ -3,12 +3,29 @@ using UnityEngine.InputSystem;
 
 public class PlayerMove: MonoBehaviour
 {
-    [SerializeField] private float speed = 5f;
+    [SerializeField] private float speed = 0f;
 
     private Camera mainCamera;
 
     private void Start()
     {
+        // SelectScene에서 선택한 데이터가 있는지 확인 후 적용
+        if (SelectScene.SelectedData != null)
+        {
+            // 1. 속도 적용
+            speed = SelectScene.SelectedData.playerSpeed*5;
+
+
+            SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null && SelectScene.SelectedData.playerIcon != null)
+            {
+                spriteRenderer.sprite = SelectScene.SelectedData.playerIcon;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("선택된 캐릭터 데이터가 없습니다. 기본값으로 실행합니다.");
+        }
         mainCamera = Camera.main;
     }
 
