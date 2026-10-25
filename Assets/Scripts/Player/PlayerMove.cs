@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerMove: MonoBehaviour
 {
-    [SerializeField] private float speed = 0f;
+    private float speed = 0f;
 
     private Camera mainCamera;
 
