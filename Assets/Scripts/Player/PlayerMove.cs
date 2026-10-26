@@ -1,11 +1,14 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerMove: MonoBehaviour
+public class PlayerMove : MonoBehaviour
 {
     private float speed = 0f;
 
     private Camera mainCamera;
+
+    private const float MinScale = 0.05f;
+    private const float MaxScale = 5f;
 
     private void Start()
     {
@@ -13,7 +16,7 @@ public class PlayerMove: MonoBehaviour
         if (SelectScene.SelectedData != null)
         {
             // 1. 속도 적용
-            speed = SelectScene.SelectedData.playerSpeed*5;
+            speed = SelectScene.SelectedData.playerSpeed * 5;
 
 
             SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
@@ -21,6 +24,11 @@ public class PlayerMove: MonoBehaviour
             {
                 spriteRenderer.sprite = SelectScene.SelectedData.playerIcon;
             }
+
+            // 2. 크기 적용 (PlayerData의 playerScale 배율, 0 이하면 원본 크기로 실행)
+            float savedScale = SelectScene.SelectedData.playerScale;
+            float scale = (savedScale <= 0f) ? 1f : Mathf.Clamp(savedScale, MinScale, MaxScale);
+            transform.localScale = Vector3.one * scale;
         }
         else
         {
