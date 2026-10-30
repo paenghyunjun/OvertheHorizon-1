@@ -169,7 +169,7 @@ MonoBehaviour:
   NameText: {fileID: 1666807488}
   HPText: {fileID: 1984098818}
   SpeedText: {fileID: 1793363669}
-  DescriptionText: {fileID: 1493291814}
+  DescriptionText: {fileID: 0}
 --- !u!1 &215295906
 GameObject:
   m_ObjectHideFlags: 0
@@ -1337,7 +1337,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 9923955}
         m_TargetAssemblyTypeName: SelectScene, Assembly-CSharp
-        m_MethodName: NextCharacter
+        m_MethodName: NextCharter
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1470,7 +1470,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 9923955}
         m_TargetAssemblyTypeName: SelectScene, Assembly-CSharp
-        m_MethodName: PrevCharacter
+        m_MethodName: PreviousCharter
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
