@@ -11,6 +11,10 @@ public class BulletMove : MonoBehaviour
         Destroy(gameObject, destroyTime);
     }
 
+    // 적이 피격 검사를 할 수 있도록 목록에 등록
+    private void OnEnable() => PlayerBullets.Active.Add(transform);
+    private void OnDisable() => PlayerBullets.Active.Remove(transform);
+
     // Update is called once per frame
     void Update()
     {
