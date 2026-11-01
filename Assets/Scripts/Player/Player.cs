@@ -8,9 +8,11 @@ public class PlayerData : ScriptableObject
     public int playerID;
     public int playerHealth;
     public float playerSpeed;
-    public GameObject chddkf;
+   
     public Sprite playerIcon;
     public Sprite[] playerAnimation;
+    [Tooltip("playerAnimation 재생 속도 (초당 프레임 수)")]
+    [Min(0.1f)] public float animationFps = 8f;
     [TextArea] public string playerDescription;
 
     [Header("캐릭터 크기 설정")]
