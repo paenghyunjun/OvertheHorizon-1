@@ -6,6 +6,8 @@ public class SoundManager : MonoBehaviour
     [SerializeField] AudioSource bgmSource;
     [SerializeField] AudioSource sfxSource;
     [SerializeField] AudioClip [] bgmClip;
+    [SerializeField] AudioClip [] sfxClip;
+
 
     void Start()
     {
@@ -22,5 +24,10 @@ public class SoundManager : MonoBehaviour
         bgmSource.loop = true;
         bgmSource.clip = clip;
         bgmSource.Play();
+    }
+    
+    public void PlaySFX(AudioClip clip)
+    {
+        sfxSource.PlayOneShot(clip);
     }
 }
