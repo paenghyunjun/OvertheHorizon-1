@@ -7,6 +7,7 @@ public class BackGround : MonoBehaviour
     [SerializeField] private GameObject BackGrounds;
     [SerializeField] private float minusY = -10f;
     [SerializeField] private float resetY = 10f; // 다시 올라갈 Y 좌표 (필요에 따라 조절)
+    
 
     private void Awake()
     {
