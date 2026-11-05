@@ -15,8 +15,13 @@ public class PlayerHit : MonoBehaviour
     public Vector2 HitPosition => transform.position;
     public bool CanBeHit => !isInvincible && hp > 0;
     public int Hp => hp;
+    public int MaxHp => maxHp;
+
+    // 체력이 바뀔 때마다 호출됨 (체력 UI 갱신용)
+    public event System.Action OnHpChanged;
 
     private int hp;
+    private int maxHp;
     private bool isInvincible = false;
     private SpriteRenderer sr;
     private PlayerMove move;
@@ -27,11 +32,14 @@ public class PlayerHit : MonoBehaviour
         Instance = this;
         sr = GetComponent<SpriteRenderer>();
         move = GetComponent<PlayerMove>();
+
+        // 체력 UI가 Start에서 읽을 수 있도록 Awake에서 초기화
+        maxHp = SelectScene.SelectedData != null ? SelectScene.SelectedData.playerHealth : defaultHp;
+        hp = maxHp;
     }
 
     private void Start()
     {
-        hp = SelectScene.SelectedData != null ? SelectScene.SelectedData.playerHealth : defaultHp;
         CreateHitboxView();
     }
 
@@ -50,6 +58,7 @@ public class PlayerHit : MonoBehaviour
 
         hp = Mathf.Max(hp - damage, 0);
         Debug.Log($"[PlayerHit] 피격! 남은 체력 : {hp}");
+        OnHpChanged?.Invoke();
 
         // 맞으면 화면의 탄을 지워서 연속 피격 방지
         EnemyBullet.ClearAll();
