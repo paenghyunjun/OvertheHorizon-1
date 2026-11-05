@@ -3,38 +3,38 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-// Ä³¸¯ÅÍ ¼±ÅÃ ¾À(1_SlectScene)À» ´ã´çÇÏ´Â ½ºÅ©¸³Æ®
-// - ÁÂ¿ì ¹öÆ°À¸·Î Ä³¸¯ÅÍ¸¦ ³Ñ°Üº¸°í, ¼±ÅÃ ¹öÆ°À» ´©¸£¸é °ÔÀÓ ¾ÀÀ¸·Î ³Ñ¾î°¨
-// - ¼±ÅÃµÈ Ä³¸¯ÅÍ µ¥ÀÌÅÍ´Â SelectedData¿¡ ÀúÀåµÇ¾î PlayerMove µî¿¡¼­ ÀĞ¾î°¨
+// ìºë¦­í„° ì„ íƒ ì”¬(1_SlectScene)ì„ ë‹´ë‹¹í•˜ëŠ” ìŠ¤í¬ë¦½íŠ¸
+// - ì¢Œìš° ë²„íŠ¼ìœ¼ë¡œ ìºë¦­í„°ë¥¼ ë„˜ê²¨ë³´ê³ , ì„ íƒ ë²„íŠ¼ì„ ëˆ„ë¥´ë©´ ê²Œì„ ì”¬ìœ¼ë¡œ ë„˜ì–´ê°
+// - ì„ íƒëœ ìºë¦­í„° ë°ì´í„°ëŠ” SelectedDataì— ì €ì¥ë˜ì–´ PlayerMove ë“±ì—ì„œ ì½ì–´ê°
 public class SelectScene : MonoBehaviour
 {
-    // ¼±ÅÃÀÌ È®Á¤µÈ Ä³¸¯ÅÍ µ¥ÀÌÅÍ (°ÔÀÓ ¾À¿¡¼­ SelectScene.SelectedData·Î Á¢±Ù)
+    // ì„ íƒì´ í™•ì •ëœ ìºë¦­í„° ë°ì´í„° (ê²Œì„ ì”¬ì—ì„œ SelectScene.SelectedDataë¡œ ì ‘ê·¼)
     public static PlayerData SelectedData { get; private set; }
 
-    [Header("Ä³¸¯ÅÍ µ¥ÀÌÅÍ")]
-    [SerializeField] private PlayerData[] CharterData;   // Inspector¿¡¼­ Ä³¸¯ÅÍ µ¥ÀÌÅÍ(ScriptableObject)µéÀ» ¼ø¼­´ë·Î ¿¬°á
-    private int NowNumber = 0;                            // ÇöÀç È­¸é¿¡ º¸¿©ÁÖ°í ÀÖ´Â Ä³¸¯ÅÍ ¹øÈ£
+    [Header("ìºë¦­í„° ë°ì´í„°")]
+    [SerializeField] private PlayerData[] CharterData;   // Inspectorì—ì„œ ìºë¦­í„° ë°ì´í„°(ScriptableObject)ë“¤ì„ ìˆœì„œëŒ€ë¡œ ì—°ê²°
+    private int NowNumber = 0;                            // í˜„ì¬ í™”ë©´ì— ë³´ì—¬ì£¼ê³  ìˆëŠ” ìºë¦­í„° ë²ˆí˜¸
 
     [Header("UI")]
-    [SerializeField] private Image Charters;              // Ä³¸¯ÅÍ ¾ÆÀÌÄÜÀÌ Ç¥½ÃµÉ ÀÌ¹ÌÁö
-    [SerializeField] private TMP_Text NameText;           // Ä³¸¯ÅÍ ÀÌ¸§ ÅØ½ºÆ®
-    [SerializeField] private TMP_Text HPText;             // Ã¼·Â ÅØ½ºÆ®
-    [SerializeField] private TMP_Text SpeedText;          // ¼Óµµ ÅØ½ºÆ®
-    [SerializeField] private TMP_Text DescriptionText;    // Ä³¸¯ÅÍ ¼³¸í ÅØ½ºÆ®
+    [SerializeField] private Image Charters;              // ìºë¦­í„° ì•„ì´ì½˜ì´ í‘œì‹œë  ì´ë¯¸ì§€
+    [SerializeField] private TMP_Text NameText;           // ìºë¦­í„° ì´ë¦„ í…ìŠ¤íŠ¸
+    [SerializeField] private TMP_Text HPText;             // ì²´ë ¥ í…ìŠ¤íŠ¸
+    [SerializeField] private TMP_Text SpeedText;          // ì†ë„ í…ìŠ¤íŠ¸
+    [SerializeField] private TMP_Text DescriptionText;    // ìºë¦­í„° ì„¤ëª… í…ìŠ¤íŠ¸
 
     private void Start()
     {
-        // ¿¬°áµÈ Ä³¸¯ÅÍ µ¥ÀÌÅÍ°¡ ¾øÀ¸¸é °æ°í ÈÄ Á¾·á (ºó ¹è¿­·Î ½ÇÇàµÇ´Â »ç°í ¹æÁö)
+        // ì—°ê²°ëœ ìºë¦­í„° ë°ì´í„°ê°€ ì—†ìœ¼ë©´ ê²½ê³  í›„ ì¢…ë£Œ (ë¹ˆ ë°°ì—´ë¡œ ì‹¤í–‰ë˜ëŠ” ì‚¬ê³  ë°©ì§€)
         if (CharterData == null || CharterData.Length == 0)
         {
-            Debug.LogError("CharterData¿¡ µî·ÏµÈ Ä³¸¯ÅÍ µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù!");
+            Debug.LogError("CharterDataì— ë“±ë¡ëœ ìºë¦­í„° ë°ì´í„°ê°€ ì—†ìŠµë‹ˆë‹¤!");
             return;
         }
 
         UpdateUI();
     }
 
-    // ´ÙÀ½ Ä³¸¯ÅÍ·Î ³Ñ±è (¸¶Áö¸·ÀÌ¸é ´Ù½Ã Ã³À½À¸·Î)
+    // ë‹¤ìŒ ìºë¦­í„°ë¡œ ë„˜ê¹€ (ë§ˆì§€ë§‰ì´ë©´ ë‹¤ì‹œ ì²˜ìŒìœ¼ë¡œ)
     public void NextCharacter()
     {
         if (CharterData == null || CharterData.Length == 0) return;
@@ -47,7 +47,7 @@ public class SelectScene : MonoBehaviour
         UpdateUI();
     }
 
-    // ÀÌÀü Ä³¸¯ÅÍ·Î ³Ñ±è (Ã³À½ÀÌ¸é ¸¶Áö¸·À¸·Î)
+    // ì´ì „ ìºë¦­í„°ë¡œ ë„˜ê¹€ (ì²˜ìŒì´ë©´ ë§ˆì§€ë§‰ìœ¼ë¡œ)
     public void PrevCharacter()
     {
         if (CharterData == null || CharterData.Length == 0) return;
@@ -60,7 +60,7 @@ public class SelectScene : MonoBehaviour
         UpdateUI();
     }
 
-    // ¼±ÅÃ ¹öÆ°: ÇöÀç Ä³¸¯ÅÍ¸¦ È®Á¤ÇÏ°í °ÔÀÓ ¾ÀÀ¸·Î ÀÌµ¿
+    // ì„ íƒ ë²„íŠ¼: í˜„ì¬ ìºë¦­í„°ë¥¼ í™•ì •í•˜ê³  ê²Œì„ ì”¬ìœ¼ë¡œ ì´ë™
     public void SelectCharacter()
     {
         if (CharterData == null || CharterData.Length == 0) return;
@@ -69,7 +69,7 @@ public class SelectScene : MonoBehaviour
         SceneManager.LoadScene("2_GameScene");
     }
 
-    // ÇöÀç Ä³¸¯ÅÍ Á¤º¸¸¦ UI¿¡ ¹İ¿µ
+    // í˜„ì¬ ìºë¦­í„° ì •ë³´ë¥¼ UIì— ë°˜ì˜
     private void UpdateUI()
     {
         if (CharterData[NowNumber] == null) return;
@@ -78,12 +78,12 @@ public class SelectScene : MonoBehaviour
 
         Charters.sprite = data.playerIcon;
         NameText.text = data.playerName;
-        HPText.text = "Ã¼·Â : " + data.playerHealth.ToString();
-        SpeedText.text = "¼Óµµ : " + data.playerSpeed.ToString();
+        HPText.text = "ì²´ë ¥ : " + data.playerHealth.ToString();
+        SpeedText.text = "ì†ë„ : " + data.playerSpeed.ToString();
         DescriptionText.text = data.playerDescription;
 
-        // ¾ÆÀÌÄÜÀÌ ³Ê¹« Å©°Ô ³ª¿ÀÁö ¾Êµµ·Ï, ÀÌ¹ÌÁö Å©±â¸¦ ÃÖ´ë 250ÇÈ¼¿·Î ¸ÂÃã
-        // (°¡·Î¼¼·Î ºñÀ²Àº preserveAspect·Î À¯ÁöÇÏ°í, ±ä ÂÊÀ» 250À¸·Î ÁÙÀÓ)
+        // ì•„ì´ì½˜ì´ ë„ˆë¬´ í¬ê²Œ ë‚˜ì˜¤ì§€ ì•Šë„ë¡, ì´ë¯¸ì§€ í¬ê¸°ë¥¼ ìµœëŒ€ 250í”½ì…€ë¡œ ë§ì¶¤
+        // (ê°€ë¡œì„¸ë¡œ ë¹„ìœ¨ì€ preserveAspectë¡œ ìœ ì§€í•˜ê³ , ê¸´ ìª½ì„ 250ìœ¼ë¡œ ì¤„ì„)
         if (Charters.sprite != null)
         {
             Charters.preserveAspect = true;

@@ -169,7 +169,7 @@ MonoBehaviour:
   NameText: {fileID: 1666807488}
   HPText: {fileID: 1984098818}
   SpeedText: {fileID: 1793363669}
-  DescriptionText: {fileID: 0}
+  DescriptionText: {fileID: 1493291814}
 --- !u!1 &215295906
 GameObject:
   m_ObjectHideFlags: 0
@@ -1073,8 +1073,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -45, y: -288}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 235, y: -323}
+  m_SizeDelta: {x: 760, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1493291814
 MonoBehaviour:
@@ -1337,7 +1337,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 9923955}
         m_TargetAssemblyTypeName: SelectScene, Assembly-CSharp
-        m_MethodName: NextCharter
+        m_MethodName: NextCharacter
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1470,7 +1470,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 9923955}
         m_TargetAssemblyTypeName: SelectScene, Assembly-CSharp
-        m_MethodName: PreviousCharter
+        m_MethodName: PrevCharacter
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
