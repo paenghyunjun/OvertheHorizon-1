@@ -13,6 +13,10 @@ public class HomingBullet : MonoBehaviour
         FindNearestEnemy();
     }
 
+    // 적이 피격 검사를 할 수 있도록 목록에 등록
+    private void OnEnable() => PlayerBullets.Active.Add(transform);
+    private void OnDisable() => PlayerBullets.Active.Remove(transform);
+
     void Update()
     {
         // 타겟이 없거나 파괴되었으면 다시 탐색

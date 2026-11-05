@@ -46,37 +46,27 @@ public class LoadingSceneManager : MonoBehaviour
         op.allowSceneActivation = false;
 
         float timer = 0f;
+        float shown = 0f; // 화면에 표시되는 진행률
 
         while (!op.isDone)
         {
             yield return null;
-            timer += Time.deltaTime;
+            timer += Time.unscaledDeltaTime;
 
             // op.progress는 0.0 ~ 0.9 사이의 값을 반환합니다 (0.9에서 로딩 완료)
-            if (op.progress < 0.9f)
+            float target = Mathf.Clamp01(op.progress / 0.9f);
+
+            // 게이지가 튀지 않도록 목표값을 향해 부드럽게 채움 (최소 fadeOrMinDelay 동안)
+            float fillSpeed = 1f / Mathf.Max(fadeOrMinDelay, 0.01f);
+            shown = Mathf.MoveTowards(shown, target, fillSpeed * Time.unscaledDeltaTime);
+
+            if (progressBar != null) progressBar.value = shown;
+            if (progressText != null) progressText.text = $"LOADING... {(shown * 100f):F0}%";
+
+            // 실제 로딩 완료 + 게이지 가득 + 최소 대기 시간 충족 시 씬 전환 허용
+            if (op.progress >= 0.9f && shown >= 1f && timer >= fadeOrMinDelay)
             {
-                // 실제 진행률을 UI 슬라이더에 반영
-                float progress = Mathf.Clamp01(op.progress / 0.9f);
-                if (progressBar != null) progressBar.value = progress;
-                if (progressText != null) progressText.text = $"LOADING... {(progress * 100f):F0}%";
-            }
-            else
-            {
-                // 실제 씬 로딩이 completed(90% 이상)된 상태
-                // 비동기 로딩이 너무 빨라도 최소 대기 시간을 채워 연출을 완성함
-                float progress = Mathf.Lerp(progressBar != null ? progressBar.value : 0f, 1f, timer / fadeOrMinDelay);
-
-                if (progressBar != null) progressBar.value = progress;
-                if (progressText != null) progressText.text = $"LOADING... {(progress * 100f):F0}%";
-
-                // 게이지가 완전히 채워지면 씬 전환 허용
-                if (progressBar != null && progressBar.value >= 0.99f && timer >= fadeOrMinDelay)
-                {
-                    op
-
-
-                        .allowSceneActivation = true;
-                }
+                op.allowSceneActivation = true;
             }
         }
     }
