@@ -5,183 +5,29 @@ using UnityEngine;
 // 각도 기준: 0도 = 오른쪽, 90도 = 위, -90도(270도) = 아래
 public class EnemyBullet : MonoBehaviour
 {
-    private static readonly Stack<EnemyBullet> pool = new Stack<EnemyBullet>();
-    private static readonly List<EnemyBullet> active = new List<EnemyBullet>();
-    private static Transform poolRoot;
-    private static Camera cam;
+    [SerializeField] private float Speed = 5f; // 예시 기본값 설정
+    [SerializeField] private float LifeTime = 3f; // 탄환이 사라지기까지 걸리는 시간
+    [SerializeField] private float Damage = 1f;   // 플레이어에게 입히는 데미지
 
-    private const float MaxSpeed = 15f;
-    private const float MaxLifeTime = 20f;
-    private const float ScreenMargin = 1f;
+    // 주석 처리: 자기 자신을 굳이 참조할 필요가 없다면 삭제해도 됩니다.
+    // [SerializeField] private GameObject bullet; 
 
-    public static int ActiveCount => active.Count;
+    public float bulletAngle;
 
-    private SpriteRenderer body;
-    private float angle;           // 진행 방향 (도)
-    private float speed;           // 현재 속도
-    private float accel;           // 초당 속도 변화량 (음수면 감속)
-    private float angularVelocity; // 초당 방향 회전량 (휘는 탄)
-    private float hitRadius;
-    private int damage;
-    private float life;
-
-    /// <summary>
-    /// 탄 한 발 발사
-    /// </summary>
-    /// <param name="size">보이는 지름. 실제 판정은 이보다 작음 (보이는 것보다 판정이 작은 게 탄막 게임의 기본)</param>
-    public static EnemyBullet Spawn(Vector2 position, float angle, float speed, Color color,
-        float size = 0.25f, float accel = 0f, float angularVelocity = 0f, int damage = 10)
-    {
-        EnsureRoot();
-
-        // 풀에 파괴된 탄이 섞여 있으면 건너뜀
-        EnemyBullet b = null;
-        while (b == null && pool.Count > 0) b = pool.Pop();
-        if (b == null) b = Create();
-
-        b.transform.position = position;
-        b.transform.localScale = Vector3.one * size;
-        b.body.color = color;
-        b.angle = angle;
-        b.speed = speed;
-        b.accel = accel;
-        b.angularVelocity = angularVelocity;
-        b.hitRadius = size * 0.35f;
-        b.damage = damage;
-        b.life = 0f;
-        b.gameObject.SetActive(true);
-        active.Add(b);
-        return b;
-    }
-
-    /// <summary>
-    /// 화면의 모든 적 탄 제거 (피격, 페이즈 전환, 보스 격파 시)
-    /// </summary>
-    public static void ClearAll()
-    {
-        for (int i = active.Count - 1; i >= 0; i--)
-        {
-            // 씬 전환 등으로 이미 파괴된 탄은 목록에서만 제거
-            if (active[i] == null)
-            {
-                active.RemoveAt(i);
-                continue;
-            }
-            active[i].Despawn();
-        }
-    }
-
-    // 플레이 시작 / 씬 로드 때 static 목록 초기화
-    // (static 값은 씬이 바뀌어도, Domain Reload를 끈 경우 플레이를 다시 눌러도 남아 있음)
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics()
-    {
-        pool.Clear();
-        active.Clear();
-        poolRoot = null;
-        cam = null;
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
-    {
-        // 이전 씬의 탄들은 이미 파괴되었으므로 목록을 비움
-        if (mode == UnityEngine.SceneManagement.LoadSceneMode.Single)
-        {
-            pool.Clear();
-            active.Clear();
-            cam = null;
-        }
-    }
-
-    private static void EnsureRoot()
-    {
-        // 씬이 바뀌면 이전 씬의 풀 오브젝트는 같이 파괴되므로 목록을 새로 시작
-        if (poolRoot == null)
-        {
-            pool.Clear();
-            active.Clear();
-            poolRoot = new GameObject("EnemyBullets").transform;
-        }
-    }
-
-    private static EnemyBullet Create()
-    {
-        var go = new GameObject("EnemyBullet");
-        go.SetActive(false);
-        go.transform.SetParent(poolRoot, false);
-
-        // 바깥: 색이 들어간 원
-        var body = go.AddComponent<SpriteRenderer>();
-        body.sprite = DanmakuSprites.Circle;
-        body.sortingOrder = 20;
-
-        // 안쪽: 흰 심지 (탄이 잘 보이게)
-        var coreGo = new GameObject("Core");
-        coreGo.transform.SetParent(go.transform, false);
-        coreGo.transform.localScale = Vector3.one * 0.55f;
-        var core = coreGo.AddComponent<SpriteRenderer>();
-        core.sprite = DanmakuSprites.Circle;
-        core.sortingOrder = 21;
-
-        var bullet = go.AddComponent<EnemyBullet>();
-        bullet.body = body;
-        return bullet;
-    }
-
+    // 무한 루프를 없애고 매 프레임 이동하도록 Update로 변경
     private void Update()
     {
-        float dt = Time.deltaTime;
-        life += dt;
-
-        // 1. 가속/감속과 방향 회전 적용
-        speed = Mathf.Clamp(speed + accel * dt, 0f, MaxSpeed);
-        angle += angularVelocity * dt;
-
-        // 2. 이동
-        float rad = angle * Mathf.Deg2Rad;
-        Vector3 dir = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f);
-        transform.position += dir * (speed * dt);
-
-        // 3. 플레이어 판정 (원 vs 원 거리 비교)
-        PlayerHit player = PlayerHit.Instance;
-        if (player != null && player.CanBeHit)
-        {
-            float r = hitRadius + player.HitRadius;
-            if (((Vector2)transform.position - player.HitPosition).sqrMagnitude < r * r)
-            {
-                Despawn();
-                player.TakeHit(damage);
-                return;
-            }
-        }
-
-        // 4. 화면 밖으로 나갔거나 너무 오래 살아있으면 회수
-        if (life > MaxLifeTime || IsOutOfScreen())
-        {
-            Despawn();
-        }
+        // Space.Self 기준으로 위쪽(Vector2.up)으로 이동
+        this.gameObject.transform.Translate(Vector2.up * Speed * Time.deltaTime, Space.Self);
     }
 
-    private bool IsOutOfScreen()
+    // 화면 밖으로 나갔을 때의 처리
+    private void OnBecameInvisible()
     {
-        if (cam == null) cam = Camera.main;
-        if (cam == null) return false;
+        // [중요] 오브젝트 풀을 사용하므로 Destroy 대신 비활성화를 해야 합니다!
+        this.gameObject.SetActive(false);
 
-        // 가속탄이 화면 밖에서 돌아올 수 있도록 약간의 여유를 둠
-        float h = cam.orthographicSize + ScreenMargin;
-        float w = cam.orthographicSize * cam.aspect + ScreenMargin;
-        Vector3 p = transform.position - cam.transform.position;
-        return p.x < -w || p.x > w || p.y < -h || p.y > h;
-    }
-
-    private void Despawn()
-    {
-        if (!gameObject.activeSelf) return;
-
-        gameObject.SetActive(false);
-        active.Remove(this);
-        pool.Push(this);
+        // 만약 풀링 매니저에 반납하는 구조라면 여기에 반납 코드를 넣습니다.
+        // 예: PoolManager.ReturnBullet(this.gameObject);
     }
 }

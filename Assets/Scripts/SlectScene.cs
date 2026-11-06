@@ -69,7 +69,6 @@ public class SelectScene : MonoBehaviour
         SceneManager.LoadScene("2_GameScene");
     }
 
-    // 현재 캐릭터 정보를 UI에 반영
     private void UpdateUI()
     {
         if (CharterData[NowNumber] == null) return;
@@ -82,8 +81,6 @@ public class SelectScene : MonoBehaviour
         SpeedText.text = "속도 : " + data.playerSpeed.ToString();
         DescriptionText.text = data.playerDescription;
 
-        // 아이콘이 너무 크게 나오지 않도록, 이미지 크기를 최대 250픽셀로 맞춤
-        // (가로세로 비율은 preserveAspect로 유지하고, 긴 쪽을 250으로 줄임)
         if (Charters.sprite != null)
         {
             Charters.preserveAspect = true;

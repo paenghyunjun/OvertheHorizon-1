@@ -60,8 +60,6 @@ public class PlayerHit : MonoBehaviour
         Debug.Log($"[PlayerHit] 피격! 남은 체력 : {hp}");
         OnHpChanged?.Invoke();
 
-        // 맞으면 화면의 탄을 지워서 연속 피격 방지
-        EnemyBullet.ClearAll();
 
         if (hp <= 0)
         {
@@ -94,7 +92,7 @@ public class PlayerHit : MonoBehaviour
         hitboxView = new GameObject("PlayerHitbox");
         hitboxView.transform.localScale = Vector3.one * hitRadius * 2f * 1.8f;
         var rim = hitboxView.AddComponent<SpriteRenderer>();
-        rim.sprite = DanmakuSprites.Circle;
+        
         rim.color = new Color(1f, 0.2f, 0.2f);
         rim.sortingOrder = 30;
 
@@ -102,7 +100,6 @@ public class PlayerHit : MonoBehaviour
         core.transform.SetParent(hitboxView.transform, false);
         core.transform.localScale = Vector3.one * 0.6f;
         var coreSr = core.AddComponent<SpriteRenderer>();
-        coreSr.sprite = DanmakuSprites.Circle;
         coreSr.sortingOrder = 31;
 
         hitboxView.SetActive(false);
