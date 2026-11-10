@@ -1,33 +1,79 @@
-using System.Collections.Generic;
 using UnityEngine;
 
-// 적 탄환. 수백 발을 빠르게 만들고 지우기 위해 오브젝트 풀을 사용
-// 각도 기준: 0도 = 오른쪽, 90도 = 위, -90도(270도) = 아래
+// 각도 기준: 0 = 오른쪽, 90 = 위, -90 = 아래
 public class EnemyBullet : MonoBehaviour
 {
-    [SerializeField] private float Speed = 5f; // 예시 기본값 설정
-    [SerializeField] private float LifeTime = 3f; // 탄환이 사라지기까지 걸리는 시간
-    [SerializeField] private float Damage = 1f;   // 플레이어에게 입히는 데미지
+    [Tooltip("판정 반지름. 그림보다 작게 잡아야 억울한 피격이 없음")]
+    [SerializeField] private float radius = 0.08f;
+    [SerializeField] private int damage = 1;
+    [SerializeField] private float maxLifeTime = 20f;
 
-    // 주석 처리: 자기 자신을 굳이 참조할 필요가 없다면 삭제해도 됩니다.
-    // [SerializeField] private GameObject bullet; 
+    private SpriteRenderer sr;
+    private float angle;
+    private float speed;
+    private float accel;
+    private float angularSpeed;
+    private float life;
 
-    public float bulletAngle;
+    public float Radius => radius;
 
-    // 무한 루프를 없애고 매 프레임 이동하도록 Update로 변경
-    private void Update()
+    private void Awake()
     {
-        // Space.Self 기준으로 위쪽(Vector2.up)으로 이동
-        this.gameObject.transform.Translate(Vector2.up * Speed * Time.deltaTime, Space.Self);
+        sr = GetComponent<SpriteRenderer>();
     }
 
-    // 화면 밖으로 나갔을 때의 처리
-    private void OnBecameInvisible()
+    public void Init(Vector2 pos, float angle, float speed, Color color, float accel, float angularSpeed)
     {
-        // [중요] 오브젝트 풀을 사용하므로 Destroy 대신 비활성화를 해야 합니다!
-        this.gameObject.SetActive(false);
+        transform.position = pos;
+        this.angle = angle;
+        this.speed = speed;
+        this.accel = accel;
+        this.angularSpeed = angularSpeed;
+        life = 0f;
+        if (sr != null) sr.color = color;
+        ApplyRotation();
+    }
 
-        // 만약 풀링 매니저에 반납하는 구조라면 여기에 반납 코드를 넣습니다.
-        // 예: PoolManager.ReturnBullet(this.gameObject);
+    private void Update()
+    {
+        float dt = Time.deltaTime;
+        life += dt;
+        speed = Mathf.Max(0f, speed + accel * dt);
+        angle += angularSpeed * dt;
+
+        float rad = angle * Mathf.Deg2Rad;
+        transform.position += new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f) * (speed * dt);
+        if (angularSpeed != 0f) ApplyRotation();
+
+        if (HitPlayer()) return;
+
+        if (life > maxLifeTime || !EnemyBulletPool.Bounds.Contains(transform.position))
+            EnemyBulletPool.Instance.Despawn(this);
+    }
+
+    // 원 대 원 거리 판정. 플레이어 쪽 판정 크기는 PlayerHit.HitRadius
+    private bool HitPlayer()
+    {
+        var player = PlayerHit.Instance;
+        if (player == null || !player.CanBeHit) return false;
+
+        float r = radius + player.HitRadius;
+        if (((Vector2)transform.position - player.HitPosition).sqrMagnitude > r * r) return false;
+
+        player.TakeHit(damage);
+        EnemyBulletPool.Instance.Despawn(this);
+        return true;
+    }
+
+    // 탄 스프라이트는 위쪽을 바라보게 그려야 진행 방향과 맞음
+    private void ApplyRotation()
+    {
+        transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, radius);
     }
 }
