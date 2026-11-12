@@ -66,7 +66,7 @@ public class SelectScene : MonoBehaviour
         if (CharterData == null || CharterData.Length == 0) return;
 
         SelectedData = CharterData[NowNumber];
-        SceneManager.LoadScene("2_GameScene");
+        SceneManager.LoadScene("GameScene");
     }
 
     private void UpdateUI()
