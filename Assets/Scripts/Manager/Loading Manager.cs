@@ -23,7 +23,7 @@ public class LoadingSceneManager : MonoBehaviour
     public static void LoadScene(string sceneName)
     {
         nextSceneName = sceneName;
-        SceneManager.LoadScene("0.5_Loading"); // 로딩 전용 씬으로 우선 이동
+        SceneManager.LoadScene("Loading"); // 로딩 전용 씬으로 우선 이동
     }
 
     private void Start()
