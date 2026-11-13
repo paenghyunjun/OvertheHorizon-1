@@ -165,6 +165,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SlectScene
   CharterData:
   - {fileID: 11400000, guid: 9ea9c66ca249c3c4a90795643a8c1d0a, type: 2}
+  - {fileID: 11400000, guid: 37949212d17b43c4385064f0e18bc8c0, type: 2}
   Charters: {fileID: 1532649569}
   NameText: {fileID: 1666807488}
   HPText: {fileID: 1984098818}

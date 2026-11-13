@@ -12,12 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17f8d8890f67d0548993625e5f1fc679, type: 3}
   m_Name: Me
   m_EditorClassIdentifier: Assembly-CSharp::PlayerData
-  playerName: 
-  playerID: 0
-  playerHealth: 0
-  playerSpeed: 0
-  playerIcon: {fileID: 0}
-  playerAnimation: []
+  playerName: "\uB9E4"
+  playerID: 1
+  playerHealth: 350
+  playerSpeed: 6
+  playerIcon: {fileID: 7145198348311737387, guid: da7a5151c3aaae8458bc050b5087b981, type: 3}
+  playerAnimation:
+  - {fileID: 7145198348311737387, guid: da7a5151c3aaae8458bc050b5087b981, type: 3}
+  - {fileID: -6468786696492178435, guid: c3eee3aa653bb914ab5a6c2d6ff16a94, type: 3}
   animationFps: 8
-  playerDescription: 
+  playerDescription: "\uB0A0\uCE74\uB85C\uC6B4 \uB9E4\uB4E4 \uC0AC\uC774\uC5D0\uC11C
+    \uB354\uC6B1 \uD2B9\uBCC4\uD558\uAC8C \uB3C5\uD55C \uB9E4"
   playerScale: 1
