@@ -1,6 +1,5 @@
 using UnityEngine;
 
-// 각도 기준: 0 = 오른쪽, 90 = 위, -90 = 아래
 public class EnemyBullet : MonoBehaviour
 {
     [Tooltip("판정 반지름. 그림보다 작게 잡아야 억울한 피격이 없음")]
@@ -20,6 +19,11 @@ public class EnemyBullet : MonoBehaviour
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
+    }
+
+    public void SetSprite(Sprite sprite)
+    {
+        if (sr != null && sprite != null) sr.sprite = sprite;
     }
 
     public void Init(Vector2 pos, float angle, float speed, Color color, float accel, float angularSpeed)
@@ -51,7 +55,6 @@ public class EnemyBullet : MonoBehaviour
             EnemyBulletPool.Instance.Despawn(this);
     }
 
-    // 원 대 원 거리 판정. 플레이어 쪽 판정 크기는 PlayerHit.HitRadius
     private bool HitPlayer()
     {
         var player = PlayerHit.Instance;
@@ -65,7 +68,6 @@ public class EnemyBullet : MonoBehaviour
         return true;
     }
 
-    // 탄 스프라이트는 위쪽을 바라보게 그려야 진행 방향과 맞음
     private void ApplyRotation()
     {
         transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f);

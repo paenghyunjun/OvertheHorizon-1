@@ -1,23 +1,24 @@
 using UnityEngine;
 
-public class BulletMove : MonoBehaviour
+public class BulletMove : MonoBehaviour, IPoolable
 {
     [SerializeField] private float speed = 10f;
     [SerializeField] private float destroyTime;
-    // Start is called once before the first execution
-    //of Update after the MonoBehaviour is created
-    void Start()
-    {
-        Destroy(gameObject, destroyTime);
-    }
 
-    // 적이 피격 검사를 할 수 있도록 목록에 등록
+    private float life;
+
+    public void OnSpawned() => life = 0f;
+
+    public void OnDespawned() { }
+
     private void OnEnable() => PlayerBullets.Active.Add(transform);
     private void OnDisable() => PlayerBullets.Active.Remove(transform);
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        transform.Translate(speed * Time.deltaTime * Vector3.up);//
+        transform.Translate(speed * Time.deltaTime * Vector3.up);
+
+        life += Time.deltaTime;
+        if (life >= destroyTime) PullingManager.Release(gameObject);
     }
 }

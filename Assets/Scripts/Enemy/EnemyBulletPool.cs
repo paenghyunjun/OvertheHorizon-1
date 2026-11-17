@@ -1,31 +1,40 @@
-using System.Collections.Generic;
 using UnityEngine;
+
+public enum BulletShape { Orb, Rice, Feather, Star }
 
 public class EnemyBulletPool : MonoBehaviour
 {
     private static EnemyBulletPool instance;
 
-    // 씬에 없으면 처음 쓸 때 자동으로 만들어짐
     public static EnemyBulletPool Instance
     {
         get
         {
-            if (instance == null) new GameObject("EnemyBulletPool").AddComponent<EnemyBulletPool>();
+            if (instance == null) instance = FindFirstObjectByType<EnemyBulletPool>();
+            if (instance == null) instance = new GameObject("EnemyBulletPool").AddComponent<EnemyBulletPool>();
             return instance;
         }
     }
 
-    // 이 범위를 벗어난 탄은 회수
     public static Rect Bounds { get; private set; }
 
     [Tooltip("비워두면 기본 원형 탄을 사용")]
     [SerializeField] private EnemyBullet bulletPrefab;
+    [Tooltip("시작할 때 미리 만들어 둘 탄 개수")]
     [SerializeField] private int preload = 300;
     [SerializeField] private float boundsMargin = 1f;
     [SerializeField] private float defaultBulletSize = 0.25f;
 
-    private readonly Stack<EnemyBullet> pool = new Stack<EnemyBullet>();
+    [Header("탄 모양 (Assets/Sprites/Bullets)")]
+    [SerializeField] private Sprite orbSprite;
+    [SerializeField] private Sprite riceSprite;
+    [SerializeField] private Sprite featherSprite;
+    [SerializeField] private Sprite starSprite;
+    [Tooltip("탄 스프라이트를 쓸 때의 크기 배율")]
+    [SerializeField] private float spriteBulletSize = 0.8f;
+
     private static Sprite circleSprite;
+    private bool ready;
 
     private void Awake()
     {
@@ -35,16 +44,17 @@ public class EnemyBulletPool : MonoBehaviour
             return;
         }
         instance = this;
+        Prepare();
+    }
+
+    private void Prepare()
+    {
+        if (ready) return;
+        ready = true;
 
         if (bulletPrefab == null) bulletPrefab = CreateDefaultBullet();
         UpdateBounds();
-
-        for (int i = 0; i < preload; i++)
-        {
-            var b = Instantiate(bulletPrefab, transform);
-            b.gameObject.SetActive(false);
-            pool.Push(b);
-        }
+        PullingManager.Instance.Prewarm(bulletPrefab.gameObject, preload);
     }
 
     private void Update()
@@ -52,28 +62,32 @@ public class EnemyBulletPool : MonoBehaviour
         UpdateBounds();
     }
 
-    public EnemyBullet Spawn(Vector2 pos, float angle, float speed, Color color, float accel = 0f, float angularSpeed = 0f)
+    public EnemyBullet Spawn(Vector2 pos, float angle, float speed, Color color, float accel = 0f, float angularSpeed = 0f, BulletShape shape = BulletShape.Orb)
     {
-        var b = pool.Count > 0 ? pool.Pop() : Instantiate(bulletPrefab, transform);
-        b.gameObject.SetActive(true);
+        Prepare();
+        var b = PullingManager.Instance.Spawn(bulletPrefab, pos, Quaternion.identity);
+        b.SetSprite(SpriteFor(shape));
         b.Init(pos, angle, speed, color, accel, angularSpeed);
         return b;
     }
 
-    public void Despawn(EnemyBullet b)
+    private Sprite SpriteFor(BulletShape shape)
     {
-        if (!b.gameObject.activeSelf) return;
-        b.gameObject.SetActive(false);
-        pool.Push(b);
+        Sprite s = orbSprite;
+        if (shape == BulletShape.Rice && riceSprite != null) s = riceSprite;
+        else if (shape == BulletShape.Feather && featherSprite != null) s = featherSprite;
+        else if (shape == BulletShape.Star && starSprite != null) s = starSprite;
+        return s;
     }
 
-    // 화면의 모든 적 탄 제거 (봄, 보스 페이즈 전환 등)
+    public void Despawn(EnemyBullet b)
+    {
+        if (b != null) PullingManager.Release(b.gameObject);
+    }
+
     public void ClearAll()
     {
-        foreach (Transform child in transform)
-        {
-            if (child.gameObject.activeSelf && child.TryGetComponent(out EnemyBullet b)) Despawn(b);
-        }
+        if (bulletPrefab != null) PullingManager.Instance.DespawnAll(bulletPrefab.gameObject);
     }
 
     private void UpdateBounds()
@@ -91,16 +105,15 @@ public class EnemyBulletPool : MonoBehaviour
         var go = new GameObject("DefaultEnemyBullet");
         go.SetActive(false);
         go.transform.SetParent(transform, false);
-        go.transform.localScale = Vector3.one * defaultBulletSize;
+        go.transform.localScale = Vector3.one * (orbSprite != null ? spriteBulletSize : defaultBulletSize);
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = CircleSprite;
+        sr.sprite = orbSprite != null ? orbSprite : CircleSprite;
         sr.sortingOrder = 20;
 
         return go.AddComponent<EnemyBullet>();
     }
 
-    // 지름 1 유닛짜리 원 스프라이트
     public static Sprite CircleSprite
     {
         get

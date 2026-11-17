@@ -1,0 +1,1627 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Over the Horizon 코드 주석</title>
+<style>
+:root {
+  --bg: #f6f4ef; --panel: #ffffff; --ink: #22252b; --muted: #6b7180; --line: #e2ddd2;
+  --accent: #b4532a; --code-bg: #fbfaf7; --code: #3a3f4a; --comment: #1f7a4d; --comment-bg: #e9f5ee;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171c; --panel: #1c1f26; --ink: #e6e8ec; --muted: #9aa1b0; --line: #2c313b;
+    --accent: #f0a070; --code-bg: #181b21; --code: #b9c0cc; --comment: #7fd6a4; --comment-bg: #1d2c25;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.7;
+  font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; }
+.wrap { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; max-width: 1240px; margin: 0 auto; padding: 32px 20px 80px; }
+nav { position: sticky; top: 24px; align-self: start; font-size: 14px; }
+nav b { display: block; font-size: 12px; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+nav a { display: block; padding: 5px 10px; border-radius: 6px; color: var(--ink); text-decoration: none; }
+nav a:hover { background: var(--panel); color: var(--accent); }
+nav .sep { height: 1px; background: var(--line); margin: 10px 0; }
+h1 { font-size: 30px; line-height: 1.25; margin: 0 0 8px; letter-spacing: -.01em; }
+h2 { font-size: 21px; margin: 0 0 4px; }
+h3 { font-size: 16px; margin: 24px 0 8px; }
+.lead { color: var(--muted); margin: 0 0 28px; max-width: 70ch; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin: 0 0 24px; scroll-margin-top: 16px; }
+.path { font-family: Consolas, "D2Coding", monospace; font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+.desc { margin: 0 0 16px; padding: 12px 14px; border-left: 3px solid var(--accent); background: var(--code-bg); border-radius: 0 8px 8px 0; }
+pre { margin: 0; padding: 16px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto;
+  font-family: Consolas, "D2Coding", monospace; font-size: 13px; line-height: 1.6; color: var(--code); tab-size: 4; }
+pre .c { color: var(--comment); background: var(--comment-bg); font-weight: 600; border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 13px; }
+td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+ol, ul { padding-left: 20px; margin: 8px 0; }
+code { font-family: Consolas, "D2Coding", monospace; font-size: .92em; background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+.flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 4px; font-size: 14px; }
+.flow span { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--code-bg); }
+.flow i { color: var(--muted); font-style: normal; }
+.warn { border-left: 3px solid var(--accent); }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); padding: 20px 16px 60px; }
+  nav { position: static; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <b>개요</b>
+  <a href="#overview">전체 흐름</a>
+  <a href="#values">기획서 수치</a>
+  <a href="#setup">씬 연결 방법</a>
+  <a href="#looks">적과 탄환의 모습</a>
+  <a href="#assumed">임의로 정한 값</a>
+  <div class="sep"></div>
+  <b>파일별 주석</b>
+  <a href="#f0">IPoolable.cs</a>
+  <a href="#f1">Pulling Manager.cs</a>
+  <a href="#f2">Round Manager.cs</a>
+  <a href="#f3">Score Manager.cs</a>
+  <a href="#f4">Enemy.cs</a>
+  <a href="#f5">EnemyBulletPool.cs</a>
+  <a href="#f6">EnemyBullet.cs</a>
+  <a href="#f7">BulletMove.cs</a>
+  <a href="#f8">PlayerBullets.cs</a>
+  <a href="#f9">HomingBullet.cs</a>
+  <a href="#f10">PlayerShooting.cs</a>
+</nav>
+<main>
+  <h1>Over the Horizon 코드 주석</h1>
+  <p class="lead">풀링 매니저, 라운드, 적 처치 스코어 코드의 주석을 모은 문서입니다. 실제 <code>.cs</code> 파일에는 주석이 없고, 아래에 초록색으로 표시된 줄이 코드에서 빼낸 주석입니다.</p>
+
+  <section id="overview">
+    <h2>전체 흐름</h2>
+    <div class="flow">
+      <span>RoundManager가 무리 스폰</span><i>→</i>
+      <span>PullingManager에서 적을 꺼냄</span><i>→</i>
+      <span>플레이어 탄에 맞아 체력 0</span><i>→</i>
+      <span>Enemy가 ScoreManager에 점수 전달</span><i>→</i>
+      <span>적은 풀로 반납</span><i>→</i>
+      <span>무리 전멸 시 다음 무리 또는 보스</span>
+    </div>
+    <h3>세 시스템이 맡는 일</h3>
+    <div class="tablewrap"><table>
+      <tr><th>시스템</th><th>파일</th><th>맡는 일</th></tr>
+      <tr><td>풀링</td><td><code>Pulling Manager.cs</code>, <code>IPoolable.cs</code></td><td>플레이어 탄, 적 탄, 적을 프리팹별로 보관하고 재사용. 기획서의 "적 총알과 플레이어 총알을 하나의 인터페이스로 관리"에 해당.</td></tr>
+      <tr><td>라운드</td><td><code>Round Manager.cs</code></td><td>일반 스테이지(무리 5번) → 보스 → 다음 라운드 → 최종 보스 처치 시 클리어. 보스 체력 75/50/25%에서 잡몹 소환.</td></tr>
+      <tr><td>스코어</td><td><code>Enemy.cs</code>, <code>Score Manager.cs</code></td><td>적이 처치될 때만 자기 점수를 ScoreManager에 더함. 퇴장한 소환몹은 점수 없음.</td></tr>
+    </table></div>
+  </section>
+
+  <section id="values">
+    <h2>기획서 수치</h2>
+    <p>RoundManager의 기본값(<code>Round.Stage1()</code>)에 들어간 값입니다. 전부 Inspector에서 바꿀 수 있습니다.</p>
+    <div class="tablewrap"><table>
+      <tr><th>적</th><th>체력</th><th>공격 간격</th><th>등장</th><th>처치 점수</th></tr>
+      <tr><td>찌르레기</td><td class="n">20</td><td class="n">0.75초</td><td>10마리씩 5무리 (총 50)</td><td class="n">100</td></tr>
+      <tr><td>벌매</td><td class="n">25</td><td class="n">1.5초</td><td>무리마다 5마리, 찌르레기 뒤쪽 (총 25)</td><td class="n">200</td></tr>
+      <tr><td>검독수리 (보스)</td><td class="n">3000</td><td>기존 패턴 4종</td><td>찌르레기와 벌매가 다 죽었을 때</td><td class="n">10000</td></tr>
+      <tr><td>소환 찌르레기</td><td class="n">10</td><td class="n">0.75초</td><td>보스 체력 75/50/25%마다 10마리</td><td class="n">150</td></tr>
+      <tr><td>소환 벌매</td><td class="n">12</td><td class="n">1.5초</td><td>보스 체력 75/50/25%마다 2마리</td><td class="n">300</td></tr>
+    </table></div>
+    <ul>
+      <li>다음 무리는 앞 무리가 전멸하고 2초 뒤에 나옵니다.</li>
+      <li>소환몹은 능력치 50%, 탄은 파란색, 10초 뒤 살아남은 개체는 화면 위로 퇴장합니다.</li>
+    </ul>
+  </section>
+
+  <section id="setup">
+    <h2>씬 연결 방법</h2>
+    <ol>
+      <li>GameScene에 빈 오브젝트를 만들고 <code>RoundManager</code>를 붙입니다. 이것만으로 1스테이지가 돌아갑니다.</li>
+      <li>적 프리팹이 생기면 Rounds → Wave Groups / Boss / Summon Groups의 <code>Prefab</code> 칸에 넣습니다. 비워 두면 RoundManager의 Frames 칸에 넣은 기본 스프라이트 적이 나옵니다.</li>
+      <li><code>PullingManager</code>, <code>EnemyBulletPool</code>, <code>ScoreManager</code>는 씬에 없어도 처음 쓰일 때 자동으로 만들어집니다. 미리 채워 둘 개수를 정하고 싶으면 씬에 놓고 <code>Preloads</code>에 프리팹과 개수를 적습니다.</li>
+      <li>점수 UI는 씬에 배치한 텍스트에서 <code>ScoreManager.Instance.OnScoreChanged</code>를 구독하면 됩니다. 라운드 표시는 <code>RoundManager.Instance</code>의 <code>OnRoundStarted</code>, <code>OnWaveStarted</code>, <code>OnBossSpawned</code>, <code>OnRoundCleared</code>, <code>OnGameCleared</code>를 씁니다.</li>
+      <li>라운드를 추가하려면 Rounds 배열 크기를 늘립니다. 마지막 라운드의 보스가 최종 보스입니다.</li>
+    </ol>
+  </section>
+
+  <section id="looks">
+    <h2>적과 탄환의 모습</h2>
+    <div class="tablewrap"><table>
+      <tr><th>대상</th><th>스프라이트</th><th>연결된 곳</th></tr>
+      <tr><td>찌르레기</td><td><code>Sprites/Enemies/starling_0, _1</code></td><td>GameScene → RoundManager → Starling Frames</td></tr>
+      <tr><td>벌매</td><td><code>Sprites/Enemies/honey_buzzard_0, _1</code></td><td>GameScene → RoundManager → Honey Buzzard Frames</td></tr>
+      <tr><td>검독수리</td><td><code>Sprites/Enemies/golden_eagle_0, _1</code></td><td>GameScene → RoundManager → Golden Eagle Frames</td></tr>
+      <tr><td>적 탄 4종</td><td><code>Sprites/Bullets/enemy_orb, enemy_rice, enemy_feather, enemy_star</code></td><td>GameScene → EnemyBulletPool</td></tr>
+      <tr><td>플레이어 기본 탄</td><td><code>Sprites/Bullets/player_feather</code></td><td>Prefabs/Bullet</td></tr>
+      <tr><td>플레이어 유도탄</td><td><code>Sprites/Bullets/player_homing_star</code></td><td>Prefabs/HomingBullet</td></tr>
+    </table></div>
+    <ul>
+      <li>적은 2프레임을 번갈아 보여 날갯짓합니다. 그림을 바꾸려면 Inspector의 Frames 칸에 다른 스프라이트를 넣으면 됩니다.</li>
+      <li>적 탄은 패턴마다 모양이 다릅니다: 원형탄은 구슬, 조준 부채꼴은 깃털, 나선과 조준 단발은 쌀알, 휘는 탄은 별.</li>
+      <li>적 탄 스프라이트는 흰색이라 패턴 색이 그대로 입혀지고, 소환몹의 탄은 파란색입니다.</li>
+    </ul>
+  </section>
+
+  <section id="assumed" class="warn">
+    <h2>임의로 정한 값</h2>
+    <p>기획서에 수치가 없거나 서로 달라서 임시로 정한 부분입니다.</p>
+    <ul>
+      <li><b>처치 점수</b>: 기획서에 점수 수치가 없습니다. 보스 흡수 점수 비율(찌르레기 1 : 벌매 2)을 따라 100 / 200, 보스는 10000으로 두었습니다.</li>
+      <li><b>소환몹 점수 1.5배</b>: 기획서의 "소환된 몹을 잡으면 필살기 게이지 1.5배"를 점수에도 똑같이 적용했습니다.</li>
+      <li><b>소환 수</b>: 기획서 앞부분은 찌르레기 8 + 벌매 3, 페이즈 규칙 쪽은 찌르레기 10 + 벌매 2입니다. 더 자세한 뒤쪽 값을 썼습니다.</li>
+      <li><b>플레이어 탄 피해 4</b>: 캐릭터 공격력(3~5)이 PlayerData에 아직 없어 Enemy의 <code>Damage Per Hit</code>에 4를 넣었습니다.</li>
+      <li><b>미구현</b>: 검독수리 스킬 5종과 페이즈, 흡수 강화, 벌매 분열탄, 필살기 게이지 보상은 이번 범위가 아니라 들어 있지 않습니다. 보스는 기존 패턴 4종을 돌립니다.</li>
+    </ul>
+  </section>
+
+  <section id="f0">
+    <h2>IPoolable.cs</h2>
+    <p class="path">Assets/Scripts/Manager/IPoolable.cs</p>
+    <p class="desc">풀에서 꺼내지고 돌아가는 순간을 알려주는 공통 인터페이스. 기획서의 &quot;적 총알과 플레이어 총알을 하나의 인터페이스로 관리&quot; 항목에 해당한다. 플레이어 탄(BulletMove, HomingBullet)과 적(Enemy)이 같은 규칙으로 풀을 드나든다.</p>
+<pre>public interface IPoolable
+{
+    <span class="c">// PullingManager.Spawn 으로 꺼내진 직후(활성화된 뒤)에 호출된다. 수명, 타겟 같은 값을 초기화하는 자리.</span>
+    void OnSpawned();
+
+    <span class="c">// PullingManager.Despawn 으로 돌아가기 직전(비활성화되기 전)에 호출된다. 이벤트, 코루틴을 정리하는 자리.</span>
+    void OnDespawned();
+}</pre>
+  </section>
+
+  <section id="f1">
+    <h2>Pulling Manager.cs</h2>
+    <p class="path">Assets/Scripts/Manager/Pulling Manager.cs</p>
+    <p class="desc">프리팹 종류와 상관없이 쓰는 공용 오브젝트 풀. 탄막 게임은 탄이 초당 수십 개씩 생기고 사라지므로 Instantiate/Destroy 대신 꺼내 쓰고 되돌려 놓는다. 플레이어 탄, 적 탄(EnemyBulletPool 경유), 적(RoundManager 경유)이 전부 이 매니저 하나를 거친다.</p>
+<pre>using System.Collections.Generic;
+using UnityEngine;
+
+public class PullingManager : MonoBehaviour
+{
+    <span class="c">// Inspector 에서 &quot;이 프리팹을 몇 개 미리 만들어 둘지&quot; 적는 한 줄.</span>
+    [System.Serializable]
+    public class Preload
+    {
+        public GameObject prefab;
+        public int count = 20;
+    }
+
+    <span class="c">// 프리팹 하나당 하나씩 생기는 보관함.</span>
+    private class Bucket
+    {
+        <span class="c">// 이 프리팹으로 만든 오브젝트를 모아 두는 부모(하이어라키 정리용).</span>
+        public Transform root;
+        <span class="c">// 쉬고 있는(비활성) 오브젝트.</span>
+        public readonly Stack&lt;GameObject&gt; idle = new Stack&lt;GameObject&gt;();
+        <span class="c">// 지금 화면에 나가 있는(활성) 오브젝트. DespawnAll 과 개수 확인에 쓴다.</span>
+        public readonly HashSet&lt;GameObject&gt; active = new HashSet&lt;GameObject&gt;();
+    }
+
+    <span class="c">// 풀이 만든 오브젝트 하나에 붙는 꼬리표: 어느 보관함 소속인지와 IPoolable 컴포넌트 목록.</span>
+    private struct Entry
+    {
+        public Bucket bucket;
+        public IPoolable[] hooks;
+    }
+
+    private static PullingManager instance;
+
+    <span class="c">// 씬에 배치해 둔 매니저가 있으면 그것을 쓰고, 없으면 처음 쓰는 순간 자동으로 만든다.</span>
+    <span class="c">// 씬에 있는 매니저의 Awake 보다 먼저 불려도 중복 생성되지 않도록 먼저 씬에서 찾아본다.</span>
+    public static PullingManager Instance
+    {
+        get
+        {
+            if (instance == null) instance = FindFirstObjectByType&lt;PullingManager&gt;();
+            if (instance == null) instance = new GameObject(&quot;PullingManager&quot;).AddComponent&lt;PullingManager&gt;();
+            return instance;
+        }
+    }
+
+    [Tooltip(&quot;씬 시작 시 미리 만들어 둘 프리팹과 개수&quot;)]
+    [SerializeField] private Preload[] preloads;
+
+    <span class="c">// 프리팹 -&gt; 보관함.</span>
+    private readonly Dictionary&lt;GameObject, Bucket&gt; buckets = new Dictionary&lt;GameObject, Bucket&gt;();
+    <span class="c">// 풀이 만든 오브젝트 -&gt; 꼬리표.</span>
+    private readonly Dictionary&lt;GameObject, Entry&gt; entries = new Dictionary&lt;GameObject, Entry&gt;();
+    <span class="c">// DespawnAll 에서 순회 중 컬렉션이 바뀌는 것을 피하려고 쓰는 임시 목록.</span>
+    private readonly List&lt;GameObject&gt; buffer = new List&lt;GameObject&gt;();
+
+    private void Awake()
+    {
+        <span class="c">// 매니저는 씬에 하나만. 뒤늦게 깨어난 중복은 스스로 사라진다.</span>
+        if (instance != null &amp;&amp; instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+
+        if (preloads == null) return;
+        foreach (var p in preloads)
+        {
+            if (p != null) Prewarm(p.prefab, p.count);
+        }
+    }
+
+    <span class="c">// 쉬는 오브젝트가 count 개가 될 때까지 미리 만들어 둔다. 전투 중 끊김을 로딩 시점으로 옮기는 용도.</span>
+    public void Prewarm(GameObject prefab, int count)
+    {
+        if (prefab == null) return;
+        var bucket = GetBucket(prefab);
+        while (bucket.idle.Count &lt; count) bucket.idle.Push(Create(prefab, bucket));
+    }
+
+    <span class="c">// 풀에서 하나 꺼내 위치/회전을 맞추고 활성화한다. 쉬는 오브젝트가 없으면 새로 만든다.</span>
+    public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
+    {
+        if (prefab == null) return null;
+        var bucket = GetBucket(prefab);
+
+        <span class="c">// 씬 전환 등으로 이미 파괴된 오브젝트가 스택에 남아 있을 수 있어 살아 있는 것이 나올 때까지 꺼낸다.</span>
+        GameObject go = null;
+        while (bucket.idle.Count &gt; 0 &amp;&amp; go == null) go = bucket.idle.Pop();
+        if (go == null) go = Create(prefab, bucket);
+
+        go.transform.SetPositionAndRotation(position, rotation);
+        bucket.active.Add(go);
+        go.SetActive(true);
+
+        var hooks = entries[go].hooks;
+        for (int i = 0; i &lt; hooks.Length; i++) hooks[i].OnSpawned();
+        return go;
+    }
+
+    <span class="c">// 컴포넌트 타입으로 바로 받고 싶을 때 쓰는 편의 버전. 예: Spawn(enemyPrefab, pos, rot) -&gt; Enemy</span>
+    public T Spawn&lt;T&gt;(T prefab, Vector3 position, Quaternion rotation) where T : Component
+    {
+        if (prefab == null) return null;
+        var go = Spawn(prefab.gameObject, position, rotation);
+        return go != null ? go.GetComponent&lt;T&gt;() : null;
+    }
+
+    <span class="c">// 오브젝트를 풀로 되돌린다.</span>
+    public void Despawn(GameObject go)
+    {
+        if (go == null) return;
+
+        <span class="c">// 풀이 만들지 않은 오브젝트(씬에 직접 놓은 것 등)는 되돌릴 곳이 없으므로 그냥 파괴한다.</span>
+        if (!entries.TryGetValue(go, out var entry))
+        {
+            Destroy(go);
+            return;
+        }
+
+        <span class="c">// 이미 되돌아간 오브젝트를 또 되돌리면 스택에 두 번 들어가므로 막는다.</span>
+        if (!entry.bucket.active.Remove(go)) return;
+
+        for (int i = 0; i &lt; entry.hooks.Length; i++) entry.hooks[i].OnDespawned();
+        go.SetActive(false);
+        entry.bucket.idle.Push(go);
+    }
+
+    <span class="c">// 어디서든 한 줄로 반납하는 정적 버전. 매니저가 이미 사라진 뒤(씬 종료 중)에도 새로 만들지 않고 안전하게 처리한다.</span>
+    public static void Release(GameObject go)
+    {
+        if (go == null) return;
+        if (instance != null) instance.Despawn(go);
+        else Destroy(go);
+    }
+
+    <span class="c">// 해당 프리팹으로 꺼낸 것을 전부 되돌린다. 화면의 탄 전체 삭제(페이즈 전환, 필살기)에 쓴다.</span>
+    public void DespawnAll(GameObject prefab)
+    {
+        if (prefab == null || !buckets.TryGetValue(prefab, out var bucket)) return;
+        buffer.Clear();
+        buffer.AddRange(bucket.active);
+        for (int i = 0; i &lt; buffer.Count; i++) Despawn(buffer[i]);
+        buffer.Clear();
+    }
+
+    <span class="c">// 해당 프리팹으로 지금 화면에 나가 있는 개수.</span>
+    public int CountActive(GameObject prefab)
+    {
+        return prefab != null &amp;&amp; buckets.TryGetValue(prefab, out var bucket) ? bucket.active.Count : 0;
+    }
+
+    private Bucket GetBucket(GameObject prefab)
+    {
+        if (buckets.TryGetValue(prefab, out var bucket)) return bucket;
+
+        bucket = new Bucket { root = new GameObject(prefab.name + &quot; Pool&quot;).transform };
+        bucket.root.SetParent(transform, false);
+        buckets.Add(prefab, bucket);
+        return bucket;
+    }
+
+    <span class="c">// 새 오브젝트를 만들어 꺼둔 상태로 돌려준다. IPoolable 은 이때 한 번만 찾아 두고 계속 재사용한다.</span>
+    private GameObject Create(GameObject prefab, Bucket bucket)
+    {
+        var go = Instantiate(prefab, bucket.root);
+        go.name = prefab.name;
+        go.SetActive(false);
+        entries.Add(go, new Entry { bucket = bucket, hooks = go.GetComponentsInChildren&lt;IPoolable&gt;(true) });
+        return go;
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
+    }
+}</pre>
+  </section>
+
+  <section id="f2">
+    <h2>Round Manager.cs</h2>
+    <p class="path">Assets/Scripts/Manager/Round Manager.cs</p>
+    <p class="desc">라운드(스테이지) 진행을 맡는다. 기획서 플레이루프 그대로: 일반 스테이지(잡몹 무리 여러 번) -&gt; 보스 -&gt; 다음 라운드 ... -&gt; 마지막 라운드의 보스(최종 보스) 처치 시 클리어. 숫자는 전부 Inspector 에서 고칠 수 있고, 기본값은 기획서 1스테이지(찌르레기/벌매/검독수리) 값이다.</p>
+<pre>using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class RoundManager : MonoBehaviour
+{
+    <span class="c">// Ready: 시작 대기 / Wave: 잡몹 무리와 전투 중 / WaveDelay: 다음 무리를 기다리는 중</span>
+    <span class="c">// Boss: 보스전 / RoundClear: 라운드를 깨고 다음 라운드 대기 / GameClear: 최종 보스 처치</span>
+    public enum State { Ready, Wave, WaveDelay, Boss, RoundClear, GameClear }
+
+    <span class="c">// &quot;어떤 적을 몇 마리, 체력/점수 얼마로&quot; 를 적는 한 줄.</span>
+    [Serializable]
+    public class EnemyGroup
+    {
+        public EnemyKind kind = EnemyKind.Starling;
+        [Tooltip(&quot;비워두면 종류별 기본 원형 적을 사용&quot;)]
+        public Enemy prefab;
+        public int count = 10;
+        public int hp = 20;
+        [Tooltip(&quot;한 마리 처치 시 점수&quot;)]
+        public int score = 100;
+        [Tooltip(&quot;조준탄 발사 간격(초)&quot;)]
+        public float attackInterval = 0.75f;
+        [Tooltip(&quot;화면 위쪽에서 얼마나 내려와 멈출지. 작을수록 뒤(위)쪽 줄&quot;)]
+        public float stopFromTop = 2.5f;
+    }
+
+    <span class="c">// 라운드 하나의 구성.</span>
+    [Serializable]
+    public class Round
+    {
+        public string name = &quot;Stage 1&quot;;
+
+        [Header(&quot;일반 스테이지&quot;)]
+        [Tooltip(&quot;무리 하나에 함께 나오는 적 구성&quot;)]
+        public EnemyGroup[] waveGroups;
+        [Tooltip(&quot;무리가 몇 번 나오는지&quot;)]
+        public int waveCount = 5;
+        [Tooltip(&quot;앞 무리가 전멸한 뒤 다음 무리가 나오기까지(초)&quot;)]
+        public float waveDelay = 2f;
+
+        [Header(&quot;보스&quot;)]
+        public bool hasBoss = true;
+        public EnemyGroup boss;
+
+        [Header(&quot;보스 소환&quot;)]
+        [Tooltip(&quot;보스 체력이 이 비율 이하가 될 때마다 한 번씩 소환 (큰 값부터)&quot;)]
+        public float[] summonHpRatios;
+        public EnemyGroup[] summonGroups;
+        [Tooltip(&quot;소환몹 체력 배율&quot;)]
+        public float summonStatScale = 0.5f;
+        [Tooltip(&quot;소환몹 점수 배율&quot;)]
+        public float summonScoreScale = 1.5f;
+        [Tooltip(&quot;소환 후 이 시간이 지나면 살아남은 소환몹은 퇴장(초)&quot;)]
+        public float summonDuration = 10f;
+
+        <span class="c">// 기획서 1스테이지 값.</span>
+        <span class="c">// 찌르레기: 체력 20, 공격 간격 0.75초, 10마리씩 5무리(총 50). 벌매: 체력 25, 공격 간격 1.5초, 무리마다 5마리(총 25), 찌르레기 뒤쪽.</span>
+        <span class="c">// 검독수리: 체력 3000. 체력 75/50/25% 에서 찌르레기 10 + 벌매 2 소환, 소환몹 능력치 50%, 10초 뒤 퇴장.</span>
+        <span class="c">// 점수는 기획서에 수치가 없어 흡수 점수 비율(찌르레기 1 : 벌매 2)을 따라 100 / 200, 보스 10000 으로 잡았다.</span>
+        public static Round Stage1()
+        {
+            return new Round
+            {
+                name = &quot;Stage 1&quot;,
+                waveGroups = new[]
+                {
+                    new EnemyGroup { kind = EnemyKind.Starling, count = 10, hp = 20, score = 100, attackInterval = 0.75f, stopFromTop = 2.6f },
+                    new EnemyGroup { kind = EnemyKind.HoneyBuzzard, count = 5, hp = 25, score = 200, attackInterval = 1.5f, stopFromTop = 1.3f },
+                },
+                waveCount = 5,
+                waveDelay = 2f,
+                hasBoss = true,
+                boss = new EnemyGroup { kind = EnemyKind.GoldenEagle, count = 1, hp = 3000, score = 10000, attackInterval = 0.75f, stopFromTop = 2f },
+                summonHpRatios = new[] { 0.75f, 0.5f, 0.25f },
+                summonGroups = new[]
+                {
+                    new EnemyGroup { kind = EnemyKind.Starling, count = 10, hp = 20, score = 100, attackInterval = 0.75f, stopFromTop = 3.8f },
+                    new EnemyGroup { kind = EnemyKind.HoneyBuzzard, count = 2, hp = 25, score = 200, attackInterval = 1.5f, stopFromTop = 3.2f },
+                },
+                summonStatScale = 0.5f,
+                summonScoreScale = 1.5f,
+                summonDuration = 10f,
+            };
+        }
+    }
+
+    public static RoundManager Instance { get; private set; }
+
+    [Tooltip(&quot;씬 시작 후 첫 무리가 나오기까지(초)&quot;)]
+    [SerializeField] private float firstDelay = 1.5f;
+    [Tooltip(&quot;보스를 잡은 뒤 다음 라운드가 시작되기까지(초)&quot;)]
+    [SerializeField] private float roundDelay = 3f;
+    [Tooltip(&quot;라운드 목록. 마지막 라운드의 보스가 최종 보스&quot;)]
+    [SerializeField] private Round[] rounds = { Round.Stage1() };
+
+    [Header(&quot;기본 적 모습 (그룹의 Prefab 칸을 비웠을 때 사용)&quot;)]
+    <span class="c">// Assets/Sprites/Enemies 의 날갯짓 2프레임씩. 아래(플레이어 쪽)를 바라보게 그려져 있다.</span>
+    [SerializeField] private Sprite[] starlingFrames;
+    [SerializeField] private Sprite[] honeyBuzzardFrames;
+    [SerializeField] private Sprite[] goldenEagleFrames;
+
+    <span class="c">// UI 나 연출이 구독하는 알림들. 라운드/무리 번호는 1부터 센다.</span>
+    public event Action&lt;int&gt; OnRoundStarted;
+    <span class="c">// (현재 무리 번호, 전체 무리 수)</span>
+    public event Action&lt;int, int&gt; OnWaveStarted;
+    public event Action&lt;Enemy&gt; OnBossSpawned;
+    public event Action&lt;int&gt; OnRoundCleared;
+    public event Action OnGameCleared;
+
+    public State CurrentState { get; private set; } = State.Ready;
+    public int CurrentRound { get; private set; }
+    public int RoundCount =&gt; rounds != null ? rounds.Length : 0;
+    public int CurrentWave { get; private set; }
+    public int WaveCount { get; private set; }
+    public Enemy Boss { get; private set; }
+    <span class="c">// 지금 살아 있는 일반 스테이지 잡몹 수.</span>
+    public int AliveCount =&gt; alive.Count;
+
+    <span class="c">// 일반 스테이지 무리에서 살아 있는 적. 비면 다음 무리로 넘어간다.</span>
+    private readonly List&lt;Enemy&gt; alive = new List&lt;Enemy&gt;();
+    <span class="c">// 보스가 소환해서 살아 있는 적. 보스가 죽으면 한꺼번에 퇴장시킨다.</span>
+    private readonly List&lt;Enemy&gt; summoned = new List&lt;Enemy&gt;();
+    <span class="c">// 프리팹을 비워 둔 종류를 위한 기본 적 틀(종류별 1개).</span>
+    private readonly Dictionary&lt;EnemyKind, Enemy&gt; templates = new Dictionary&lt;EnemyKind, Enemy&gt;();
+    <span class="c">// 목록을 순회하면서 원본이 바뀌는 것을 피하려는 임시 목록.</span>
+    private readonly List&lt;Enemy&gt; buffer = new List&lt;Enemy&gt;();
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
+    <span class="c">// 전체 진행. 코루틴 하나가 위에서 아래로 읽히는 순서 그대로 게임이 흘러간다.</span>
+    private IEnumerator Start()
+    {
+        ScoreManager.Instance.ResetScore();
+        yield return new WaitForSeconds(firstDelay);
+
+        for (int r = 0; r &lt; rounds.Length; r++)
+        {
+            var round = rounds[r];
+            CurrentRound = r + 1;
+            OnRoundStarted?.Invoke(CurrentRound);
+
+            yield return RunWaves(round);
+            if (round.hasBoss &amp;&amp; round.boss != null) yield return RunBoss(round);
+
+            OnRoundCleared?.Invoke(CurrentRound);
+
+            if (r &lt; rounds.Length - 1)
+            {
+                CurrentState = State.RoundClear;
+                yield return new WaitForSeconds(roundDelay);
+            }
+        }
+
+        CurrentState = State.GameClear;
+        OnGameCleared?.Invoke();
+    }
+
+    <span class="c">// 일반 스테이지: 무리를 내보내고, 전멸하면 waveDelay 뒤에 다음 무리를 내보낸다.</span>
+    private IEnumerator RunWaves(Round round)
+    {
+        WaveCount = round.waveGroups != null &amp;&amp; round.waveGroups.Length &gt; 0 ? round.waveCount : 0;
+
+        for (int w = 1; w &lt;= WaveCount; w++)
+        {
+            CurrentState = State.Wave;
+            CurrentWave = w;
+            OnWaveStarted?.Invoke(w, WaveCount);
+
+            foreach (var group in round.waveGroups) SpawnGroup(group, 1f, 1f, false, alive);
+
+            while (alive.Count &gt; 0) yield return null;
+
+            if (w &lt; WaveCount)
+            {
+                CurrentState = State.WaveDelay;
+                yield return new WaitForSeconds(round.waveDelay);
+            }
+        }
+    }
+
+    <span class="c">// 보스전: 잡몹이 다 죽으면 바로 등장한다. 싸우는 동안 체력 비율을 지켜보다 기준을 넘으면 잡몹을 소환한다.</span>
+    private IEnumerator RunBoss(Round round)
+    {
+        CurrentState = State.Boss;
+
+        bool bossAlive = true;
+        Boss = SpawnOne(round.boss, 0.5f, 1f, 1f, false);
+        Boss.OnRemoved += _ =&gt; bossAlive = false;
+        OnBossSpawned?.Invoke(Boss);
+
+        int nextSummon = 0;
+        while (bossAlive)
+        {
+            <span class="c">// 한 번에 큰 피해를 받아 기준 두 개를 동시에 넘으면 소환도 두 번 일어나야 하므로 while 로 확인한다.</span>
+            while (round.summonHpRatios != null &amp;&amp; nextSummon &lt; round.summonHpRatios.Length
+                   &amp;&amp; Boss.HpRatio &lt;= round.summonHpRatios[nextSummon])
+            {
+                nextSummon++;
+                StartCoroutine(Summon(round));
+            }
+            yield return null;
+        }
+
+        Boss = null;
+
+        <span class="c">// 보스가 죽으면 남은 소환몹은 싸울 이유가 없으므로 퇴장시킨다.</span>
+        buffer.Clear();
+        buffer.AddRange(summoned);
+        foreach (var e in buffer) e.Leave();
+        buffer.Clear();
+    }
+
+    <span class="c">// 소환 한 번: 약해진 잡몹을 부르고, summonDuration 뒤에 그 회차에서 살아남은 것만 퇴장시킨다.</span>
+    private IEnumerator Summon(Round round)
+    {
+        if (round.summonGroups == null) yield break;
+
+        var batch = new List&lt;Enemy&gt;();
+        foreach (var group in round.summonGroups)
+            SpawnGroup(group, round.summonStatScale, round.summonScoreScale, true, batch);
+
+        yield return new WaitForSeconds(round.summonDuration);
+
+        foreach (var e in batch.ToArray()) e.Leave();
+    }
+
+    <span class="c">// 한 그룹을 가로로 고르게 벌려 내보내고, tracker 목록에 넣어 살아 있는 수를 센다.</span>
+    private void SpawnGroup(EnemyGroup group, float hpScale, float scoreScale, bool isSummon, List&lt;Enemy&gt; tracker)
+    {
+        if (group == null) return;
+
+        for (int i = 0; i &lt; group.count; i++)
+        {
+            float t = (i + 1f) / (group.count + 1f);
+            var e = SpawnOne(group, t, hpScale, scoreScale, isSummon);
+
+            tracker.Add(e);
+            e.OnRemoved += dead =&gt; tracker.Remove(dead);
+
+            if (isSummon)
+            {
+                summoned.Add(e);
+                e.OnRemoved += dead =&gt; summoned.Remove(dead);
+            }
+        }
+    }
+
+    <span class="c">// 적 한 마리를 풀에서 꺼낸다. t 는 가로 위치(0 = 왼쪽 끝, 1 = 오른쪽 끝).</span>
+    private Enemy SpawnOne(EnemyGroup group, float t, float hpScale, float scoreScale, bool isSummon)
+    {
+        var cam = Camera.main;
+        float h = cam != null ? cam.orthographicSize : 5f;
+        float w = cam != null ? h * cam.aspect : 9f;
+        Vector2 c = cam != null ? (Vector2)cam.transform.position : Vector2.zero;
+
+        <span class="c">// 화면 폭의 80% 안쪽에 배치하고, 화면 밖 위에서 target 까지 내려오게 한다.</span>
+        float x = c.x + Mathf.Lerp(-w, w, t) * 0.8f;
+        Vector2 target = new Vector2(x, c.y + h - group.stopFromTop);
+        Vector2 start = new Vector2(x, c.y + h + 1f);
+
+        var e = PullingManager.Instance.Spawn(TemplateFor(group), start, Quaternion.identity);
+        e.Configure(group.kind, Mathf.RoundToInt(group.score * scoreScale), isSummon, group.attackInterval);
+        <span class="c">// 프리팹을 넣었으면 프리팹에 설정한 패턴을, 비웠으면 종류별 기본 패턴을 쓴다.</span>
+        e.Setup(target, Mathf.RoundToInt(group.hp * hpScale), group.prefab != null ? null : DefaultPatterns(group.kind));
+        return e;
+    }
+
+    <span class="c">// 프리팹이 비어 있을 때의 패턴. 보스는 기존 4가지 패턴을 돌리고, 잡몹은 조준탄만 쏜다.</span>
+    private static Enemy.Pattern[] DefaultPatterns(EnemyKind kind)
+    {
+        if (kind == EnemyKind.GoldenEagle)
+            return new[] { Enemy.Pattern.Ring, Enemy.Pattern.AimedFan, Enemy.Pattern.Spiral, Enemy.Pattern.Curve };
+        return new[] { Enemy.Pattern.AimedShot };
+    }
+
+    <span class="c">// 프리팹이 있으면 그것을, 없으면 종류별 색/크기의 원형 적을 꺼진 상태로 하나 만들어 프리팹처럼 쓴다.</span>
+    private Enemy TemplateFor(EnemyGroup group)
+    {
+        if (group.prefab != null) return group.prefab;
+        if (templates.TryGetValue(group.kind, out var template)) return template;
+
+        <span class="c">// 종류별 값: 날갯짓 프레임, 스프라이트를 쓸 때의 크기/판정 반지름, 스프라이트가 없을 때 쓰는 원의 크기/색.</span>
+        Sprite[] frames;
+        float spriteScale, spriteHit, circleSize;
+        Color circleColor;
+        switch (group.kind)
+        {
+            case EnemyKind.HoneyBuzzard:
+                frames = honeyBuzzardFrames; spriteScale = 1f; spriteHit = 0.4f;
+                circleSize = 0.7f; circleColor = new Color(0.95f, 0.75f, 0.2f);
+                break;
+            case EnemyKind.GoldenEagle:
+                frames = goldenEagleFrames; spriteScale = 1.5f; spriteHit = 1f;
+                circleSize = 2.2f; circleColor = new Color(0.55f, 0.35f, 0.15f);
+                break;
+            default:
+                frames = starlingFrames; spriteScale = 1f; spriteHit = 0.25f;
+                circleSize = 0.45f; circleColor = new Color(0.9f, 0.2f, 0.5f);
+                break;
+        }
+        bool hasSprite = frames != null &amp;&amp; frames.Length &gt; 0 &amp;&amp; frames[0] != null;
+
+        var go = new GameObject(group.kind.ToString());
+        go.SetActive(false);
+        go.transform.SetParent(transform, false);
+        go.transform.localScale = Vector3.one * (hasSprite ? spriteScale : circleSize);
+
+        <span class="c">// 스프라이트는 이미 색이 칠해져 있으므로 흰색(원본 그대로)으로 그린다.</span>
+        var sr = go.AddComponent&lt;SpriteRenderer&gt;();
+        sr.sprite = hasSprite ? frames[0] : EnemyBulletPool.CircleSprite;
+        sr.color = hasSprite ? Color.white : circleColor;
+        sr.sortingOrder = 10;
+
+        template = go.AddComponent&lt;Enemy&gt;();
+        <span class="c">// 원 스프라이트는 지름이 1 유닛이라 판정 반지름이 크기의 절반이고, 새 스프라이트는 몸통 기준으로 따로 잡았다.</span>
+        template.HitRadius = hasSprite ? spriteHit : circleSize * 0.5f;
+        if (hasSprite) template.SetFrames(frames, group.kind == EnemyKind.GoldenEagle ? 4f : 7f);
+        templates.Add(group.kind, template);
+        return template;
+    }
+}</pre>
+  </section>
+
+  <section id="f3">
+    <h2>Score Manager.cs</h2>
+    <p class="path">Assets/Scripts/Manager/Score Manager.cs</p>
+    <p class="desc">현재 점수와 최고 점수를 관리한다. 적이 처치될 때 Enemy 가 AddScore 를 부른다.</p>
+<pre>using System;
+using UnityEngine;
+
+public class ScoreManager : MonoBehaviour
+{
+    private static ScoreManager instance;
+
+    <span class="c">// 씬에 배치하지 않아도 처음 쓰는 순간 만들어진다. 그래서 적이 죽을 때 null 검사 없이 점수를 줄 수 있다.</span>
+    public static ScoreManager Instance
+    {
+        get
+        {
+            if (instance == null) instance = FindFirstObjectByType&lt;ScoreManager&gt;();
+            if (instance == null) instance = new GameObject(&quot;ScoreManager&quot;).AddComponent&lt;ScoreManager&gt;();
+            return instance;
+        }
+    }
+
+    <span class="c">// Inspector 에서 현재 값을 눈으로 확인할 수 있도록 직렬화한다.</span>
+    [field: SerializeField] public int Score { get; private set; }
+    [field: SerializeField] public int HighScore { get; private set; }
+    <span class="c">// 이번 판에 처치한 적 수.</span>
+    [field: SerializeField] public int KillCount { get; private set; }
+
+    <span class="c">// 점수가 바뀔 때 (현재 점수, 최고 점수)를 알려준다. 점수 UI 가 구독한다.</span>
+    public event Action&lt;int, int&gt; OnScoreChanged;
+
+    private const string HighScoreKey = &quot;HighScore&quot;;
+
+    private void Awake()
+    {
+        if (instance != null &amp;&amp; instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+
+        <span class="c">// 씬이 바뀌어도(게임 -&gt; 랭킹) 점수가 남아 있도록 유지한다.</span>
+        DontDestroyOnLoad(gameObject);
+        HighScore = PlayerPrefs.GetInt(HighScoreKey, 0);
+    }
+
+    <span class="c">// 적 처치 점수. 처치 수를 함께 센 뒤 AddScore 로 넘긴다.</span>
+    public void AddKillScore(int amount)
+    {
+        KillCount++;
+        AddScore(amount);
+    }
+
+    public void AddScore(int amount)
+    {
+        <span class="c">// 0 이하 값은 무시한다. 감점이 필요해지면 이 줄을 지운다.</span>
+        if (amount &lt;= 0) return;
+
+        Score += amount;
+
+        if (Score &gt; HighScore)
+        {
+            HighScore = Score;
+            PlayerPrefs.SetInt(HighScoreKey, HighScore);
+            PlayerPrefs.Save();
+        }
+
+        OnScoreChanged?.Invoke(Score, HighScore);
+    }
+
+    <span class="c">// 새 판을 시작할 때 현재 점수와 처치 수를 0으로 되돌린다. 최고 점수는 유지된다.</span>
+    public void ResetScore()
+    {
+        Score = 0;
+        KillCount = 0;
+        OnScoreChanged?.Invoke(Score, HighScore);
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
+    }
+}</pre>
+  </section>
+
+  <section id="f4">
+    <h2>Enemy.cs</h2>
+    <p class="path">Assets/Scripts/Enemy/Enemy.cs</p>
+    <p class="desc">적 한 마리. 화면 위에서 내려와 자리를 잡고 탄막 패턴을 반복한다. 플레이어에게 처치되면 자기 점수를 ScoreManager 에 주고 풀로 돌아간다.</p>
+<pre>using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+<span class="c">// 기획서에 나오는 적 종류. 찌르레기(무리형), 벌매(분열 탄막형), 검독수리(보스).</span>
+public enum EnemyKind { Starling, HoneyBuzzard, GoldenEagle }
+
+public class Enemy : MonoBehaviour, IPoolable
+{
+    <span class="c">// AimedShot 은 기획서 찌르레기의 &quot;플레이어를 조준한 직선 탄 1발&quot;이다. 나머지는 기존 패턴.</span>
+    public enum Pattern { Ring, AimedFan, Spiral, Curve, AimedShot }
+
+    <span class="c">// 지금 화면에 살아 있는 적 목록. 유도탄이 타겟을 찾을 때 쓴다.</span>
+    public static readonly List&lt;Enemy&gt; Active = new List&lt;Enemy&gt;();
+
+    <span class="c">// 에디터에서 플레이를 다시 시작할 때 이전 판의 목록이 남지 않게 비운다.</span>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        Active.Clear();
+    }
+
+    [Header(&quot;종류 / 점수&quot;)]
+    [SerializeField] private EnemyKind kind = EnemyKind.Starling;
+    [Tooltip(&quot;처치 시 플레이어가 얻는 점수. RoundManager 가 스폰할 때 덮어씀&quot;)]
+    [SerializeField] private int scoreValue = 100;
+
+    [Header(&quot;체력 / 피격&quot;)]
+    [SerializeField] private int maxHp = 60;
+    [Tooltip(&quot;플레이어 탄에 맞는 범위&quot;)]
+    [SerializeField] private float hitRadius = 0.4f;
+    [Tooltip(&quot;플레이어 탄 한 발에 깎이는 체력. 캐릭터별 공격력(3~5)이 PlayerData 에 생기면 그 값으로 교체&quot;)]
+    [SerializeField] private int damagePerHit = 4;
+
+    [Header(&quot;이동&quot;)]
+    [SerializeField] private float enterSpeed = 3f;
+    [SerializeField] private float swayWidth = 1f;
+    [SerializeField] private float swaySpeed = 0.6f;
+
+    [Header(&quot;패턴&quot;)]
+    [SerializeField] private Pattern[] patterns = { Pattern.Ring, Pattern.AimedFan, Pattern.Spiral, Pattern.Curve };
+    [SerializeField] private float patternDuration = 4f;
+    [SerializeField] private float patternRest = 0.8f;
+    [SerializeField] private float bulletSpeed = 2.5f;
+    [Tooltip(&quot;AimedShot 패턴의 발사 간격(초). 기획서: 찌르레기 0.75, 벌매 1.5&quot;)]
+    [SerializeField] private float aimedShotInterval = 0.75f;
+
+    [Header(&quot;모습&quot;)]
+    [Tooltip(&quot;날갯짓 프레임. 2장 이상이면 순서대로 반복 재생&quot;)]
+    [SerializeField] private Sprite[] frames;
+    [Tooltip(&quot;초당 프레임 수&quot;)]
+    [SerializeField] private float frameRate = 6f;
+
+    <span class="c">// 플레이어에게 처치됐을 때만 불린다. 점수/보상처럼 &quot;잡았을 때&quot;만 일어나야 하는 일에 쓴다.</span>
+    public event System.Action&lt;Enemy&gt; OnDead;
+    <span class="c">// 처치든 퇴장이든 화면에서 사라질 때 항상 불린다. &quot;남은 적 수&quot; 계산에 쓴다.</span>
+    public event System.Action&lt;Enemy&gt; OnRemoved;
+
+    public EnemyKind Kind =&gt; kind;
+    public int ScoreValue =&gt; scoreValue;
+    <span class="c">// 보스가 소환한 잡몹인지. 소환몹은 탄이 파란색이고 일정 시간 뒤 퇴장한다.</span>
+    public bool IsSummoned { get; private set; }
+    public int Hp =&gt; hp;
+    public int MaxHp =&gt; maxHp;
+    <span class="c">// 남은 체력 비율(0~1). 보스의 75/50/25% 소환 판정에 쓴다.</span>
+    public float HpRatio =&gt; maxHp &gt; 0 ? (float)hp / maxHp : 0f;
+    public float HitRadius { get =&gt; hitRadius; set =&gt; hitRadius = value; }
+
+    <span class="c">// 스포너가 기본 적 틀을 만들 때 날갯짓 프레임을 넣어 준다. 직렬화 필드라서 풀에서 복제될 때 함께 복사된다.</span>
+    public void SetFrames(Sprite[] frames, float frameRate)
+    {
+        this.frames = frames;
+        this.frameRate = frameRate;
+    }
+
+    private int hp;
+    private Vector2 anchor;
+    <span class="c">// 자리에 도착했는지. 도착한 뒤에만 좌우로 흔들린다.</span>
+    private bool arrived;
+    <span class="c">// 행동 코루틴을 이미 시작했는지. Setup 과 Start 가 둘 다 시작하지 않게 막는다.</span>
+    private bool begun;
+    <span class="c">// 퇴장 중인지.</span>
+    private bool leaving;
+    <span class="c">// 이미 사라지는 처리를 했는지. 같은 프레임에 두 번 죽는 것을 막는다.</span>
+    private bool removed;
+    private SpriteRenderer sr;
+    private Color baseColor;
+    private float flashTimer;
+    <span class="c">// 무리 전체가 똑같은 박자로 날갯짓하지 않도록 개체마다 다른 시작 시점.</span>
+    private float frameOffset;
+
+    private void Awake()
+    {
+        hp = maxHp;
+        anchor = transform.position;
+        sr = GetComponent&lt;SpriteRenderer&gt;();
+        if (sr != null) baseColor = sr.color;
+    }
+
+    private void OnEnable() =&gt; Active.Add(this);
+    private void OnDisable() =&gt; Active.Remove(this);
+
+    <span class="c">// 풀에서 꺼내질 때: 이전 생의 상태를 전부 지운다.</span>
+    public void OnSpawned()
+    {
+        arrived = false;
+        begun = false;
+        leaving = false;
+        removed = false;
+        flashTimer = 0f;
+        IsSummoned = false;
+        frameOffset = Random.value;
+        if (sr != null) sr.color = baseColor;
+    }
+
+    <span class="c">// 풀로 돌아갈 때: 이전 스포너가 걸어 둔 구독이 다음 생에 따라오지 않게 끊는다.</span>
+    public void OnDespawned()
+    {
+        StopAllCoroutines();
+        OnDead = null;
+        OnRemoved = null;
+    }
+
+    <span class="c">// 스포너가 Setup 보다 먼저 부른다. 종류, 처치 점수, 소환몹 여부, 조준탄 발사 간격을 정한다.</span>
+    public void Configure(EnemyKind kind, int scoreValue, bool summoned, float aimedShotInterval)
+    {
+        this.kind = kind;
+        this.scoreValue = scoreValue;
+        IsSummoned = summoned;
+        if (aimedShotInterval &gt; 0f) this.aimedShotInterval = aimedShotInterval;
+    }
+
+    <span class="c">// 스포너가 꺼낸 직후 부른다. target 까지 내려온 뒤 패턴을 시작한다. patterns 가 null 이면 프리팹에 설정된 패턴을 쓴다.</span>
+    public void Setup(Vector2 target, int hp, Pattern[] patterns = null)
+    {
+        anchor = target;
+        maxHp = this.hp = Mathf.Max(1, hp);
+        if (patterns != null &amp;&amp; patterns.Length &gt; 0) this.patterns = patterns;
+        Begin();
+    }
+
+    <span class="c">// 스포너 없이 씬에 직접 놓은 적도 움직이도록, Setup 이 불리지 않았으면 여기서 시작한다.</span>
+    private void Start()
+    {
+        if (!begun) Begin();
+    }
+
+    private void Begin()
+    {
+        begun = true;
+        StopAllCoroutines();
+        StartCoroutine(Run());
+    }
+
+    private IEnumerator Run()
+    {
+        while (((Vector2)transform.position - anchor).sqrMagnitude &gt; 0.0001f)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, anchor, enterSpeed * Time.deltaTime);
+            yield return null;
+        }
+        arrived = true;
+
+        if (patterns == null || patterns.Length == 0) yield break;
+
+        <span class="c">// 같은 무리가 한 박자에 동시에 쏘지 않도록 첫 발사를 조금씩 어긋나게 한다.</span>
+        yield return new WaitForSeconds(Random.value * aimedShotInterval);
+
+        int i = 0;
+        while (true)
+        {
+            yield return RunPattern(patterns[i % patterns.Length]);
+            yield return new WaitForSeconds(patternRest);
+            i++;
+        }
+    }
+
+    private void Update()
+    {
+        if (arrived &amp;&amp; !leaving)
+        {
+            float x = Mathf.Sin(Time.time * swaySpeed * Mathf.PI) * swayWidth;
+            transform.position = anchor + new Vector2(x, 0f);
+        }
+
+        CheckPlayerBullets();
+
+        <span class="c">// 날갯짓: 시간에 따라 프레임을 번갈아 보여 준다.</span>
+        if (sr != null &amp;&amp; frames != null &amp;&amp; frames.Length &gt; 1)
+        {
+            int index = (int)((Time.time + frameOffset) * frameRate) % frames.Length;
+            if (frames[index] != null) sr.sprite = frames[index];
+        }
+
+        if (flashTimer &gt; 0f)
+        {
+            flashTimer -= Time.deltaTime;
+            if (flashTimer &lt;= 0f &amp;&amp; sr != null) sr.color = baseColor;
+        }
+    }
+
+    <span class="c">// 플레이어 탄 목록을 돌며 원 대 점 거리로 피격을 검사한다.</span>
+    private void CheckPlayerBullets()
+    {
+        var list = PlayerBullets.Active;
+        Vector2 pos = transform.position;
+        float r2 = hitRadius * hitRadius;
+
+        for (int i = list.Count - 1; i &gt;= 0; i--)
+        {
+            var b = list[i];
+            if (b == null || ((Vector2)b.position - pos).sqrMagnitude &gt; r2) continue;
+
+            <span class="c">// 맞은 탄은 바로 풀로 돌려보낸다. 꺼지면서 목록에서도 빠지므로 같은 프레임에 다른 적이 또 맞지 않는다.</span>
+            PullingManager.Release(b.gameObject);
+            TakeDamage(damagePerHit);
+            if (removed) return;
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        if (removed || hp &lt;= 0) return;
+        hp -= damage;
+
+        if (sr != null)
+        {
+            <span class="c">// 피격 번쩍임. 스프라이트를 쓰는 적은 원래 색이 흰색이라 흰색으로는 티가 안 나므로 붉게 물들인다.</span>
+            sr.color = baseColor == Color.white ? new Color(1f, 0.45f, 0.45f) : Color.white;
+            flashTimer = 0.05f;
+        }
+
+        if (hp &lt;= 0) Remove(true);
+    }
+
+    <span class="c">// 처치되지 않은 채 화면 위로 퇴장한다. 기획서: 소환 후 10초가 지나면 살아남은 잡몹은 퇴장하며 점수를 주지 않는다.</span>
+    public void Leave()
+    {
+        if (removed || leaving) return;
+        leaving = true;
+        StopAllCoroutines();
+        StartCoroutine(LeaveRoutine());
+    }
+
+    private IEnumerator LeaveRoutine()
+    {
+        var cam = Camera.main;
+        float top = cam != null ? cam.transform.position.y + cam.orthographicSize + 1f : transform.position.y + 12f;
+
+        while (transform.position.y &lt; top)
+        {
+            transform.position += Vector3.up * (enterSpeed * 2f * Time.deltaTime);
+            yield return null;
+        }
+        Remove(false);
+    }
+
+    <span class="c">// 사라지는 처리를 한 곳으로 모았다. killed 가 true 일 때만 점수를 주고 OnDead 를 알린다.</span>
+    private void Remove(bool killed)
+    {
+        if (removed) return;
+        removed = true;
+
+        if (killed)
+        {
+            ScoreManager.Instance.AddKillScore(scoreValue);
+            OnDead?.Invoke(this);
+        }
+        OnRemoved?.Invoke(this);
+
+        PullingManager.Release(gameObject);
+    }
+
+    private IEnumerator RunPattern(Pattern p)
+    {
+        switch (p)
+        {
+            case Pattern.Ring: return Ring();
+            case Pattern.AimedFan: return AimedFan();
+            case Pattern.Spiral: return Spiral();
+            case Pattern.AimedShot: return AimedShot();
+            default: return Curve();
+        }
+    }
+
+    <span class="c">// 전방위 원형탄. 발사할 때마다 반 칸씩 엇갈려서 빠져나갈 틈이 생긴다.</span>
+    private IEnumerator Ring()
+    {
+        const int count = 24;
+        float step = 360f / count;
+        float offset = 0f;
+        float end = Time.time + patternDuration;
+        while (Time.time &lt; end)
+        {
+            for (int i = 0; i &lt; count; i++)
+                Fire(offset + step * i, bulletSpeed, new Color(1f, 0.35f, 0.35f), BulletShape.Orb);
+            offset += step * 0.5f;
+            yield return new WaitForSeconds(0.45f);
+        }
+    }
+
+    <span class="c">// 플레이어를 조준한 5갈래 부채꼴을 3연사한다.</span>
+    private IEnumerator AimedFan()
+    {
+        const int ways = 5;
+        const float spread = 14f;
+        float end = Time.time + patternDuration;
+        while (Time.time &lt; end)
+        {
+            float aim = AimAngle();
+            for (int burst = 0; burst &lt; 3; burst++)
+            {
+                for (int i = 0; i &lt; ways; i++)
+                    Fire(aim + (i - (ways - 1) * 0.5f) * spread, bulletSpeed * 1.6f, new Color(0.4f, 0.7f, 1f), BulletShape.Feather);
+                yield return new WaitForSeconds(0.08f);
+            }
+            yield return new WaitForSeconds(0.6f);
+        }
+    }
+
+    <span class="c">// 3갈래로 돌아가는 나선.</span>
+    private IEnumerator Spiral()
+    {
+        const int arms = 3;
+        float angle = 0f;
+        float end = Time.time + patternDuration;
+        while (Time.time &lt; end)
+        {
+            for (int i = 0; i &lt; arms; i++)
+                Fire(angle + 360f / arms * i, bulletSpeed, new Color(1f, 0.85f, 0.3f), BulletShape.Rice);
+            angle += 11f;
+            yield return new WaitForSeconds(0.05f);
+        }
+    }
+
+    <span class="c">// 좌우로 휘어지는 탄. 느리게 출발해 가속하므로 타이밍이 어긋난다.</span>
+    private IEnumerator Curve()
+    {
+        const int count = 12;
+        float step = 360f / count;
+        bool flip = false;
+        float end = Time.time + patternDuration;
+        while (Time.time &lt; end)
+        {
+            float turn = flip ? -35f : 35f;
+            for (int i = 0; i &lt; count; i++)
+                Fire(step * i, bulletSpeed * 0.6f, new Color(0.75f, 0.45f, 1f), BulletShape.Star, 0.5f, turn);
+            flip = !flip;
+            yield return new WaitForSeconds(0.35f);
+        }
+    }
+
+    <span class="c">// 발사 순간의 플레이어 위치를 조준해 한 발씩 쏜다. 기획서 찌르레기 기본 공격.</span>
+    private IEnumerator AimedShot()
+    {
+        float end = Time.time + patternDuration;
+        while (Time.time &lt; end)
+        {
+            Fire(AimAngle(), bulletSpeed, new Color(1f, 0.6f, 0.3f), BulletShape.Rice);
+            yield return new WaitForSeconds(aimedShotInterval);
+        }
+    }
+
+    <span class="c">// 기획서: 소환된 잡몹의 탄은 파란색으로 해서 보스 탄과 구분한다.</span>
+    private void Fire(float angle, float speed, Color color, BulletShape shape, float accel = 0f, float angularSpeed = 0f)
+    {
+        if (IsSummoned) color = new Color(0.3f, 0.55f, 1f);
+        EnemyBulletPool.Instance.Spawn(transform.position, angle, speed, color, accel, angularSpeed, shape);
+    }
+
+    <span class="c">// 플레이어 판정점을 향한 각도. 플레이어가 없으면 아래(-90도)로 쏜다.</span>
+    private float AimAngle()
+    {
+        var player = PlayerHit.Instance;
+        if (player == null) return -90f;
+        Vector2 d = player.HitPosition - (Vector2)transform.position;
+        return Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, hitRadius);
+    }
+}</pre>
+  </section>
+
+  <section id="f5">
+    <h2>EnemyBulletPool.cs</h2>
+    <p class="path">Assets/Scripts/Enemy/EnemyBulletPool.cs</p>
+    <p class="desc">적 탄 전용 창구. 보관/재사용은 PullingManager 에 맡기고, 여기서는 적 탄에만 필요한 것 (기본 탄 프리팹, 화면 경계, 전체 삭제, 원 스프라이트)만 담당한다.</p>
+<pre>using UnityEngine;
+
+<span class="c">// 적 탄의 생김새. 패턴마다 다른 모양을 써서 어떤 공격인지 눈으로 구분되게 한다.</span>
+public enum BulletShape { Orb, Rice, Feather, Star }
+
+public class EnemyBulletPool : MonoBehaviour
+{
+    private static EnemyBulletPool instance;
+
+    <span class="c">// 씬에 없으면 처음 쓸 때 자동으로 만들어진다.</span>
+    public static EnemyBulletPool Instance
+    {
+        get
+        {
+            if (instance == null) instance = FindFirstObjectByType&lt;EnemyBulletPool&gt;();
+            if (instance == null) instance = new GameObject(&quot;EnemyBulletPool&quot;).AddComponent&lt;EnemyBulletPool&gt;();
+            return instance;
+        }
+    }
+
+    <span class="c">// 이 범위를 벗어난 탄은 풀로 회수된다. 화면보다 boundsMargin 만큼 넓다.</span>
+    public static Rect Bounds { get; private set; }
+
+    [Tooltip(&quot;비워두면 기본 원형 탄을 사용&quot;)]
+    [SerializeField] private EnemyBullet bulletPrefab;
+    [Tooltip(&quot;시작할 때 미리 만들어 둘 탄 개수&quot;)]
+    [SerializeField] private int preload = 300;
+    [SerializeField] private float boundsMargin = 1f;
+    [SerializeField] private float defaultBulletSize = 0.25f;
+
+    [Header(&quot;탄 모양 (Assets/Sprites/Bullets)&quot;)]
+    <span class="c">// 흰색/회색으로 그린 스프라이트라서 Spawn 에 넘긴 색이 그대로 입혀진다. 위쪽을 바라보게 그려져 있어 진행 방향으로 회전한다.</span>
+    [SerializeField] private Sprite orbSprite;
+    [SerializeField] private Sprite riceSprite;
+    [SerializeField] private Sprite featherSprite;
+    [SerializeField] private Sprite starSprite;
+    [Tooltip(&quot;탄 스프라이트를 쓸 때의 크기 배율&quot;)]
+    [SerializeField] private float spriteBulletSize = 0.8f;
+
+    private static Sprite circleSprite;
+    <span class="c">// Awake 가 두 번 준비하지 않도록 하는 표시.</span>
+    private bool ready;
+
+    private void Awake()
+    {
+        if (instance != null &amp;&amp; instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+        Prepare();
+    }
+
+    <span class="c">// 프리팹이 비어 있으면 기본 탄을 만들고, 탄을 미리 채워 둔다.</span>
+    private void Prepare()
+    {
+        if (ready) return;
+        ready = true;
+
+        if (bulletPrefab == null) bulletPrefab = CreateDefaultBullet();
+        UpdateBounds();
+        PullingManager.Instance.Prewarm(bulletPrefab.gameObject, preload);
+    }
+
+    private void Update()
+    {
+        UpdateBounds();
+    }
+
+    <span class="c">// 적 탄 한 발을 꺼내 쏜다. angle: 0 = 오른쪽, 90 = 위, -90 = 아래.</span>
+    public EnemyBullet Spawn(Vector2 pos, float angle, float speed, Color color, float accel = 0f, float angularSpeed = 0f, BulletShape shape = BulletShape.Orb)
+    {
+        Prepare();
+        var b = PullingManager.Instance.Spawn(bulletPrefab, pos, Quaternion.identity);
+        b.SetSprite(SpriteFor(shape));
+        b.Init(pos, angle, speed, color, accel, angularSpeed);
+        return b;
+    }
+
+    <span class="c">// 모양에 맞는 스프라이트. 해당 칸이 비어 있으면 구슬로, 구슬도 없으면 null(기본 원형 유지)을 돌려준다.</span>
+    private Sprite SpriteFor(BulletShape shape)
+    {
+        Sprite s = orbSprite;
+        if (shape == BulletShape.Rice &amp;&amp; riceSprite != null) s = riceSprite;
+        else if (shape == BulletShape.Feather &amp;&amp; featherSprite != null) s = featherSprite;
+        else if (shape == BulletShape.Star &amp;&amp; starSprite != null) s = starSprite;
+        return s;
+    }
+
+    public void Despawn(EnemyBullet b)
+    {
+        if (b != null) PullingManager.Release(b.gameObject);
+    }
+
+    <span class="c">// 화면의 모든 적 탄 제거. 기획서의 &quot;페이즈 시작 시 화면의 탄을 모두 지운다&quot;와 필살기에 쓴다.</span>
+    public void ClearAll()
+    {
+        if (bulletPrefab != null) PullingManager.Instance.DespawnAll(bulletPrefab.gameObject);
+    }
+
+    private void UpdateBounds()
+    {
+        var cam = Camera.main;
+        if (cam == null) return;
+        float h = cam.orthographicSize;
+        float w = h * cam.aspect;
+        Vector2 c = cam.transform.position;
+        Bounds = new Rect(c.x - w - boundsMargin, c.y - h - boundsMargin, (w + boundsMargin) * 2f, (h + boundsMargin) * 2f);
+    }
+
+    <span class="c">// 프리팹 없이도 테스트할 수 있도록 꺼진 상태의 원형 탄을 하나 만들어 프리팹처럼 쓴다.</span>
+    private EnemyBullet CreateDefaultBullet()
+    {
+        var go = new GameObject(&quot;DefaultEnemyBullet&quot;);
+        go.SetActive(false);
+        go.transform.SetParent(transform, false);
+        <span class="c">// 탄 스프라이트가 연결돼 있으면 그것을, 없으면 코드로 그린 원을 쓴다. 둘의 원본 크기가 달라 배율도 따로 둔다.</span>
+        go.transform.localScale = Vector3.one * (orbSprite != null ? spriteBulletSize : defaultBulletSize);
+
+        var sr = go.AddComponent&lt;SpriteRenderer&gt;();
+        sr.sprite = orbSprite != null ? orbSprite : CircleSprite;
+        sr.sortingOrder = 20;
+
+        return go.AddComponent&lt;EnemyBullet&gt;();
+    }
+
+    <span class="c">// 지름 1 유닛짜리 원 스프라이트. 한 번만 그려서 계속 재사용한다.</span>
+    public static Sprite CircleSprite
+    {
+        get
+        {
+            if (circleSprite != null) return circleSprite;
+
+            const int size = 64;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
+            float r = size * 0.5f;
+            for (int y = 0; y &lt; size; y++)
+            {
+                for (int x = 0; x &lt; size; x++)
+                {
+                    <span class="c">// d: 중심에서의 거리(0 = 중심, 1 = 가장자리). 가장자리는 부드럽게, 안쪽 심지는 더 밝게.</span>
+                    float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(r, r)) / r;
+                    float a = Mathf.Clamp01((1f - d) * 12f);
+                    float core = d &lt; 0.55f ? 1f : 0.75f;
+                    tex.SetPixel(x, y, new Color(core, core, core, a));
+                }
+            }
+            tex.Apply();
+            circleSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+            return circleSprite;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
+    }
+}</pre>
+  </section>
+
+  <section id="f6">
+    <h2>EnemyBullet.cs</h2>
+    <p class="path">Assets/Scripts/Enemy/EnemyBullet.cs</p>
+<pre>using UnityEngine;
+
+<span class="c">// 각도 기준: 0 = 오른쪽, 90 = 위, -90 = 아래</span>
+public class EnemyBullet : MonoBehaviour
+{
+    [Tooltip(&quot;판정 반지름. 그림보다 작게 잡아야 억울한 피격이 없음&quot;)]
+    [SerializeField] private float radius = 0.08f;
+    [SerializeField] private int damage = 1;
+    [SerializeField] private float maxLifeTime = 20f;
+
+    private SpriteRenderer sr;
+    private float angle;
+    private float speed;
+    private float accel;
+    private float angularSpeed;
+    private float life;
+
+    public float Radius =&gt; radius;
+
+    private void Awake()
+    {
+        sr = GetComponent&lt;SpriteRenderer&gt;();
+    }
+
+    <span class="c">// 풀에서 꺼낼 때 탄 모양(구슬, 쌀알, 깃털, 별)을 바꿔 끼운다. null 이면 지금 모양을 유지한다.</span>
+    public void SetSprite(Sprite sprite)
+    {
+        if (sr != null &amp;&amp; sprite != null) sr.sprite = sprite;
+    }
+
+    public void Init(Vector2 pos, float angle, float speed, Color color, float accel, float angularSpeed)
+    {
+        transform.position = pos;
+        this.angle = angle;
+        this.speed = speed;
+        this.accel = accel;
+        this.angularSpeed = angularSpeed;
+        life = 0f;
+        if (sr != null) sr.color = color;
+        ApplyRotation();
+    }
+
+    private void Update()
+    {
+        float dt = Time.deltaTime;
+        life += dt;
+        speed = Mathf.Max(0f, speed + accel * dt);
+        angle += angularSpeed * dt;
+
+        float rad = angle * Mathf.Deg2Rad;
+        transform.position += new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f) * (speed * dt);
+        if (angularSpeed != 0f) ApplyRotation();
+
+        if (HitPlayer()) return;
+
+        if (life &gt; maxLifeTime || !EnemyBulletPool.Bounds.Contains(transform.position))
+            EnemyBulletPool.Instance.Despawn(this);
+    }
+
+    <span class="c">// 원 대 원 거리 판정. 플레이어 쪽 판정 크기는 PlayerHit.HitRadius</span>
+    private bool HitPlayer()
+    {
+        var player = PlayerHit.Instance;
+        if (player == null || !player.CanBeHit) return false;
+
+        float r = radius + player.HitRadius;
+        if (((Vector2)transform.position - player.HitPosition).sqrMagnitude &gt; r * r) return false;
+
+        player.TakeHit(damage);
+        EnemyBulletPool.Instance.Despawn(this);
+        return true;
+    }
+
+    <span class="c">// 탄 스프라이트는 위쪽을 바라보게 그려야 진행 방향과 맞음</span>
+    private void ApplyRotation()
+    {
+        transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, radius);
+    }
+}</pre>
+  </section>
+
+  <section id="f7">
+    <h2>BulletMove.cs</h2>
+    <p class="path">Assets/Scripts/Bullet/BulletMove.cs</p>
+    <p class="desc">플레이어 기본 탄. 위로 직진하다가 수명이 다하면 풀로 돌아간다.</p>
+<pre>using UnityEngine;
+
+public class BulletMove : MonoBehaviour, IPoolable
+{
+    [SerializeField] private float speed = 10f;
+    <span class="c">// 이름은 예전 그대로 두어 프리팹에 저장된 값이 유지된다. 지금은 &quot;파괴&quot;가 아니라 &quot;풀로 반납&quot;까지의 시간.</span>
+    [SerializeField] private float destroyTime;
+
+    <span class="c">// 꺼내진 뒤 흐른 시간.</span>
+    private float life;
+
+    <span class="c">// 풀에서 꺼내질 때마다 수명을 처음부터 다시 센다.</span>
+    public void OnSpawned() =&gt; life = 0f;
+
+    public void OnDespawned() { }
+
+    <span class="c">// 적이 피격 검사를 할 수 있도록 활성 탄 목록에 등록/해제한다.</span>
+    private void OnEnable() =&gt; PlayerBullets.Active.Add(transform);
+    private void OnDisable() =&gt; PlayerBullets.Active.Remove(transform);
+
+    private void Update()
+    {
+        transform.Translate(speed * Time.deltaTime * Vector3.up);
+
+        life += Time.deltaTime;
+        if (life &gt;= destroyTime) PullingManager.Release(gameObject);
+    }
+}</pre>
+  </section>
+
+  <section id="f8">
+    <h2>PlayerBullets.cs</h2>
+    <p class="path">Assets/Scripts/Bullet/PlayerBullets.cs</p>
+<pre>using System.Collections.Generic;
+using UnityEngine;
+
+<span class="c">// 현재 화면에 있는 플레이어 탄 목록. 적이 이 목록으로 피격 검사를 함</span>
+public static class PlayerBullets
+{
+    public static readonly List&lt;Transform&gt; Active = new List&lt;Transform&gt;();
+
+    <span class="c">// 플레이를 다시 시작할 때 이전에 남은 목록 초기화</span>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        Active.Clear();
+    }
+}</pre>
+  </section>
+
+  <section id="f9">
+    <h2>HomingBullet.cs</h2>
+    <p class="path">Assets/Scripts/0. Intro Scene/HomingBullet.cs</p>
+    <p class="desc">플레이어 유도탄. 가장 가까운 적을 쫓아가고, 적이 없으면 위로 직진한다. 수명이 다하면 풀로 돌아간다.</p>
+<pre>using UnityEngine;
+
+public class HomingBullet : MonoBehaviour, IPoolable
+{
+    [SerializeField] private float speed = 5f;
+    <span class="c">// 풀로 반납되기까지의 시간(초).</span>
+    [SerializeField] private float destroyTime = 5f;
+    [SerializeField] private Transform target;
+
+    private float life;
+
+    <span class="c">// 재사용될 때 이전에 쫓던 적이 남아 있지 않도록 타겟과 수명을 비운다.</span>
+    public void OnSpawned()
+    {
+        life = 0f;
+        target = null;
+    }
+
+    public void OnDespawned() =&gt; target = null;
+
+    <span class="c">// 적이 피격 검사를 할 수 있도록 활성 탄 목록에 등록/해제한다.</span>
+    private void OnEnable() =&gt; PlayerBullets.Active.Add(transform);
+    private void OnDisable() =&gt; PlayerBullets.Active.Remove(transform);
+
+    private void Update()
+    {
+        <span class="c">// 적은 죽어도 파괴되지 않고 풀로 돌아가 꺼지기만 하므로 null 검사만으로는 부족하다. 꺼진 타겟도 놓아준다.</span>
+        if (target == null || !target.gameObject.activeInHierarchy) FindNearestEnemy();
+
+        if (target != null)
+        {
+            Vector2 direction = ((Vector2)target.position - (Vector2)transform.position).normalized;
+            transform.position += (Vector3)(direction * (speed * Time.deltaTime));
+        }
+        else
+        {
+            transform.Translate(speed * Time.deltaTime * Vector3.up);
+        }
+
+        life += Time.deltaTime;
+        if (life &gt;= destroyTime) PullingManager.Release(gameObject);
+    }
+
+    <span class="c">// 태그 검색 대신 Enemy.Active 목록을 쓴다. 매 프레임 불려도 씬 전체를 뒤지지 않는다.</span>
+    private void FindNearestEnemy()
+    {
+        target = null;
+        float shortest = Mathf.Infinity;
+        Vector2 pos = transform.position;
+
+        var enemies = Enemy.Active;
+        for (int i = 0; i &lt; enemies.Count; i++)
+        {
+            float d = ((Vector2)enemies[i].transform.position - pos).sqrMagnitude;
+            if (d &gt;= shortest) continue;
+            shortest = d;
+            target = enemies[i].transform;
+        }
+    }
+}</pre>
+  </section>
+
+  <section id="f10">
+    <h2>PlayerShooting.cs</h2>
+    <p class="path">Assets/Scripts/Player/PlayerShooting.cs</p>
+    <p class="desc">플레이어 발사 입력. 탄은 Instantiate 하지 않고 PullingManager 에서 꺼내 쓴다.</p>
+<pre>using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class PlayerShooting : MonoBehaviour
+{
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private GameObject homingbulletPrefab;
+    [SerializeField] private Transform firePoint;
+
+    [Header(&quot;발사 설정&quot;)]
+    <span class="c">// 공격 키를 누르고 있을 때의 연사 간격(초).</span>
+    [SerializeField] private float fireRate = 0.15f;
+    private float nextFireTime;
+
+    private void Update()
+    {
+        var kb = Keyboard.current;
+        if (kb == null) return;
+
+        <span class="c">// KeyManager 에 설정된 키를 쓰되, 없으면 기본 키(Z, X)를 쓴다.</span>
+        Key attackKey = Key.Z;
+        Key ultimateKey = Key.X;
+
+        if (KeyManager.Instance != null &amp;&amp; KeyManager.Instance.keys != null)
+        {
+            if (KeyManager.Instance.keys.TryGetValue(KeyAction.Attack, out var atk)) attackKey = atk;
+            if (KeyManager.Instance.keys.TryGetValue(KeyAction.Ultimate, out var ult)) ultimateKey = ult;
+        }
+
+        <span class="c">// 기본 공격: 누르고 있으면 fireRate 간격으로 연사.</span>
+        if (kb[attackKey].isPressed &amp;&amp; Time.time &gt;= nextFireTime)
+        {
+            nextFireTime = Time.time + fireRate;
+            Shoot();
+        }
+
+        <span class="c">// 유도탄: 누를 때마다 한 발.</span>
+        if (kb[ultimateKey].wasPressedThisFrame)
+        {
+            HomingShoot();
+        }
+    }
+
+    private void Shoot()
+    {
+        if (bulletPrefab == null)
+        {
+            Debug.LogWarning(&quot;[PlayerShooting] Bullet Prefab이 Inspector에 할당되지 않았습니다!&quot;);
+            return;
+        }
+
+        Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
+        PullingManager.Instance.Spawn(bulletPrefab, spawnPos, Quaternion.identity);
+    }
+
+    private void HomingShoot()
+    {
+        <span class="c">// 유도탄 프리팹이 비어 있으면 일반 탄으로 대신 쏴서 동작은 확인할 수 있게 한다.</span>
+        GameObject prefabToSpawn = homingbulletPrefab != null ? homingbulletPrefab : bulletPrefab;
+        if (prefabToSpawn == null)
+        {
+            Debug.LogWarning(&quot;[PlayerShooting] 발사할 총알 Prefab이 Inspector에 할당되지 않았습니다!&quot;);
+            return;
+        }
+
+        if (homingbulletPrefab == null)
+        {
+            Debug.LogWarning(&quot;[PlayerShooting] Homingbullet Prefab이 할당되지 않아 일반 Bullet으로 대체 발사했습니다. Inspector에서 Homingbullet Prefab을 할당해주세요.&quot;);
+        }
+
+        Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
+        PullingManager.Instance.Spawn(prefabToSpawn, spawnPos, Quaternion.identity);
+    }
+}</pre>
+  </section>
+</main>
+</div>
+</body>
+</html>
